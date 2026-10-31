@@ -74,7 +74,7 @@ while (pending.size) {
 }
 // the service worker precaches the page's files (not the sounds) under a version made of their names
 const shell = ["./", ...walk(DIST).map((f) => relative(DIST, f).split("\\").join("/"))
-  .filter((f) => !f.startsWith("sounds/") && f !== "sw.js" && !f.endsWith(".txt"))];
+  .filter((f) => !f.startsWith("sounds/") && f !== "sw.js" && !f.endsWith(".txt") && f !== "og-image.png")];
 const swPath = join(DIST, "sw.js");
 writeFileSync(swPath, readFileSync(swPath, "utf8").replace("__VERSION__", hash(shell.join("\n") + readFileSync(join(DIST, "index.html"))))
   .replace("__SHELL__", JSON.stringify(shell)));
