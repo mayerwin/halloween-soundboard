@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Halloween Soundboard</title>
+  <meta name="description" content="A free Halloween soundboard: screams, ghosts, witches, creaking doors and spooky ambience. Mix background tracks, queue effects, let haunt mode scare people by itself. Works offline. English and French.">
+  <meta name="theme-color" content="#0c0a11">
+  <meta property="og:title" content="Halloween Soundboard">
+  <meta property="og:description" content="Screams, ghosts, witches and spooky ambience. Tap, queue, mix, haunt. Free, no sign-up.">
+  <meta property="og:type" content="website">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="site.css">
+  <script type="module" src="site.js"></script>
+</head>
+<body>
+  <main id="app">
+    <div class="loading"><span class="pumpkin">🎃</span><p data-i18n="loading">Summoning the sounds…</p></div>
+  </main>
+  <noscript><p class="nojs">This soundboard needs JavaScript. / Cette table de sons a besoin de JavaScript.</p></noscript>
+  <footer>
+    <p><button type="button" class="install" id="install" hidden data-i18n="install">📲 Install the app</button></p>
+    <p class="tip" data-i18n="tip">🔊 Tip: pair your phone with a Bluetooth speaker, hide it in a bush, and tap away (or turn on haunt mode and walk away).</p>
+    <p><span data-i18n="sounds_by">Sounds by their creators on Freesound, Orange Free Sounds, halloweensoundboard.com, Mixkit and the BBC Sound Effects archive, used under their licenses (Mixkit and BBC sounds are played from their own sites, not copied here; the installed app saves them for offline use). We claim no rights over them.</span>
+      <button type="button" class="linkish" id="credits-open" data-i18n="full_credits">Full credits</button></p>
+    <p><span data-i18n="fonts">Fonts: Pirata One and Bricolage Grotesque (SIL OFL). Icons: Material Design Icons (Apache 2.0). Code: MIT.</span>
+      <a href="https://github.com/mayerwin/halloween-soundboard" data-i18n="source">Source on GitHub</a></p>
+    <p class="small" data-i18n="privacy">Nothing you do here leaves your browser: favourites, hidden sounds and presets are stored on this device only.</p>
+  </footer>
+  <dialog id="credits">
+    <form method="dialog"><button class="close" aria-label="Close">×</button></form>
+    <h2 data-i18n="credits">Credits</h2>
+    <p data-i18n="credits_intro">Every sound below belongs to its author and is used under the license shown. Thank you! We claim no rights over these sounds. Some licenses (CC BY-NC) forbid commercial use.</p>
+    <div id="credits-list"></div>
+  </dialog>
+  <div id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
