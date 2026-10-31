@@ -60,7 +60,7 @@ const I18N = {
     export: "Export", import: "Import", reset: "Reset", offline: "Make it work offline", offline_t: "Downloads every sound so the soundboard works without a connection (install it as an app from your browser menu).",
     this_device: "This device", this_device_t: (n) => `${n}: plays on this phone/tablet (pair it with a Bluetooth speaker). Keep this page open.`,
     speakers: "Speakers", level: "Level", level_t2: "This speaker's own level: lower a speaker that is louder than the others",
-    devices: "Phones & tablets", outdoor: "Outdoor", indoor: "Indoor", all: "all", none: "none", on_x: (a, b) => `${a} on ${b}`, level_of: (n) => `${n} level`,
+    devices: "", outdoor: "Outdoor", indoor: "Indoor", all: "all", none: "none", on_x: (a, b) => `${a} on ${b}`, level_of: (n) => `${n} level`,
     instant: "Instant speakers", instant_t: "Keeps the selected camera and Cast speakers connected so effects start right away instead of after ~10 s. Turns itself off after 6 h. Other announcements on a camera still take over.",
     connecting_n: (n) => `connecting ${n}…`, ready_n: (n) => `${n} ready`, off: "off",
     p_summary: (a, b, c, d, n, mix) => [`🎼 ${a} speakers ${b}%`, `💀 ${c} speakers ${d}%`, n ? `${n} track${n > 1 ? "s" : ""}${mix ? " mixed" : ""}` : ""].filter(Boolean).join(" · "),
@@ -107,7 +107,7 @@ const I18N = {
     export: "Exporter", import: "Importer", reset: "Réinitialiser", offline: "Utiliser hors ligne", offline_t: "Télécharge tous les sons pour que la table fonctionne sans connexion (installez-la comme une appli depuis le menu du navigateur).",
     this_device: "Cet appareil", this_device_t: (n) => `${n} : joue sur ce téléphone/cette tablette (reliez-le à une enceinte Bluetooth). Gardez cette page ouverte.`,
     speakers: "Enceintes", level: "Niveau", level_t2: "Le niveau propre de cette enceinte : baissez celle qui est plus forte que les autres",
-    devices: "Téléphones & tablettes", outdoor: "Extérieur", indoor: "Intérieur", all: "toutes", none: "aucune", on_x: (a, b) => `${a} sur ${b}`, level_of: (n) => `Niveau ${n}`,
+    devices: "", outdoor: "Extérieur", indoor: "Intérieur", all: "toutes", none: "aucune", on_x: (a, b) => `${a} sur ${b}`, level_of: (n) => `Niveau ${n}`,
     instant: "Enceintes instantanées", instant_t: "Garde les caméras et enceintes Cast sélectionnées connectées pour que les effets démarrent tout de suite au lieu d'environ 10 s. S'éteint après 6 h. Les autres annonces sur une caméra restent prioritaires.",
     connecting_n: (n) => `connexion ${n}…`, ready_n: (n) => `${n} prêtes`, off: "éteint",
     p_summary: (a, b, c, d, n, mix) => [`🎼 ${a} enceintes ${b} %`, `💀 ${c} enceintes ${d} %`, n ? `${n} piste${n > 1 ? "s" : ""}${mix ? " mélangées" : ""}` : ""].filter(Boolean).join(" · "),
@@ -152,6 +152,10 @@ const T = (k, ...a) => {
 };
 // a sound's title in the UI language; what a voice SAYS stays verbatim (kept as is in title_fr)
 const ttl = (s) => (LANG === "fr" && s?.title_fr) || s?.title || "";
+// a bat silhouette: the two wings flap (and glide now and then) around the shoulders, see .bat CSS
+const BAT_SVG = `<svg viewBox="0 0 100 44"><path class="wl" d="M47 16C38 8 22 4 4 10c6 3 8 7 7 12 5-3 9-2 11 3 4-4 9-4 12 1 4-4 9-4 13 0z"/>
+<path class="wr" d="M53 16c9-8 25-12 43-6-6 3-8 7-7 12-5-3-9-2-11 3-4-4-9-4-12 1-4-4-9-4-13 0z"/>
+<path d="M46 9l1.5-6 2 5h1l2-5 1.5 6c1 2 1 4 0 5 2 3 2 9 0 14-1 2-2 3-4 3s-3-1-4-3c-2-5-2-11 0-14-1-1-1-3 0-5z"/></svg>`;
 const catName = (cats, c) => (LANG === "fr" && CAT_FR[c]) || cats[c]?.name || c.replace(/-/g, " ");
 
 // ---------------------------------------------------------------------------------------
@@ -467,7 +471,7 @@ class SoundboardCard extends HTMLElement {
       <div class="wrap ${this.config.standalone ? "standalone" : ""}">
         <div class="fog" aria-hidden="true"></div>
         <div class="flash-sky" aria-hidden="true"></div>
-        <div class="bats" aria-hidden="true"><i>🦇</i><i>🦇</i><i>🦇</i></div>
+        <div class="bats" aria-hidden="true"><i class="moon"></i>${[1, 2, 3, 4].map((n) => `<span class="bat b${n}"><span class="bob">${BAT_SVG}</span></span>`).join("")}</div>
         <header class="top"></header>
         <nav class="bar"></nav>
         <div class="lock" hidden></div>
@@ -709,6 +713,7 @@ class SoundboardCard extends HTMLElement {
     };
     const groups = [["devices", T("devices")], ["outdoor", T("outdoor")], ["indoor", T("indoor")]].map(([g, label]) => {
       const list = this.groupOuts(outs, g);
+      if (g === "devices") return list.map(row).join("");
       return `<div class="dev-row dev-h"><span class="dev-n">${label}</span>
         ${P.map(([p]) => {
           const full = list.length && list.every((o) => sel[p].has(o.id));
@@ -922,7 +927,7 @@ class SoundboardCard extends HTMLElement {
       <div class="hint">${T("aim_hint")}</div>
       ${[["devices", T("devices")], ["outdoor", T("outdoor")], ["indoor", T("indoor")]].map(([g, label]) => {
         const list = this.groupOuts(outs, g);
-        return list.length ? `<div class="aim-g"><span class="lbl">${label}</span><div class="chips">${list.map(chip).join("")}</div></div>` : "";
+        return list.length ? `<div class="aim-g">${g === "devices" ? "" : `<span class="lbl">${label}</span>`}<div class="chips">${list.map(chip).join("")}</div></div>` : "";
       }).join("")}
       <div class="ctl-line"><button class="btn primary" data-act="aimgo" ${pick.size ? "" : "disabled"}><ha-icon icon="mdi:play"></ha-icon> ${T("play_now")}</button>
         <button class="btn" data-act="aimx">${T("cancel")}</button></div></div>`);
@@ -1171,14 +1176,30 @@ const STYLE = `
   animation:lightning 17s infinite; }
 @keyframes lightning { 0%, 90%, 100% { opacity:0; } 90.6% { opacity:.9; } 91.2% { opacity:.1; } 91.8% { opacity:.65; } 93% { opacity:0; } }
 /* a few bats crossing the header */
-.bats { position:absolute; left:0; right:0; top:0; height:150px; overflow:hidden; pointer-events:none; z-index:0; border-radius:24px 24px 0 0; }
-.bats i { position:absolute; left:-40px; font-style:normal; font-size:24px; opacity:.95; filter:brightness(.8) drop-shadow(0 0 8px rgba(155,89,255,.55)); animation:fly 15s linear infinite; }
-.bats i:nth-child(1) { top:18px; animation-duration:16s; animation-delay:-3s; }
-.bats i:nth-child(2) { top:62px; font-size:15px; animation-duration:23s; animation-delay:-14s; }
-.bats i:nth-child(3) { top:38px; font-size:18px; animation-duration:31s; animation-delay:-22s; }
-@keyframes fly { 0% { transform:translate(0, 0) scaleY(1); } 10% { transform:translate(12vw, 14px) scaleY(.6); } 20% { transform:translate(24vw, -6px) scaleY(1); }
-  30% { transform:translate(36vw, 10px) scaleY(.6); } 40% { transform:translate(48vw, -10px) scaleY(1); } 50% { transform:translate(60vw, 8px) scaleY(.6); }
-  60% { transform:translate(72vw, -4px) scaleY(1); } 70% { transform:translate(84vw, 12px) scaleY(.6); } 80%, 100% { transform:translate(110vw, 0) scaleY(1); } }
+/* the moon, and bats crossing it: each bat drifts across (left), rises and dips on a slow wave
+   with a tilt (.bob), and beats its wings around the shoulders: bursts of flaps, then a glide */
+.bats { position:absolute; left:0; right:0; top:0; height:170px; overflow:hidden; pointer-events:none; z-index:0; border-radius:24px 24px 0 0; }
+.moon { position:absolute; right:22%; top:12px; width:74px; height:74px; border-radius:50%;
+  background:radial-gradient(circle at 38% 36%, #fff6dc, #f1dca8 55%, #d6b979);
+  box-shadow:0 0 30px 8px rgba(255,228,170,.35), 0 0 90px 30px rgba(255,200,120,.12); opacity:.9; }
+.moon::after { content:""; position:absolute; inset:0; border-radius:50%;
+  background:radial-gradient(circle at 64% 60%, rgba(150,120,70,.35) 0 9%, transparent 10%), radial-gradient(circle at 34% 68%, rgba(150,120,70,.25) 0 6%, transparent 7%),
+    radial-gradient(circle at 58% 26%, rgba(150,120,70,.22) 0 5%, transparent 6%); }
+.bat { position:absolute; left:-90px; width:var(--w); animation:bat-x var(--t) linear infinite; animation-delay:var(--d); }
+.bat .bob { display:block; animation:bat-bob var(--b) ease-in-out infinite alternate; }
+.bat svg { display:block; width:100%; fill:#0d0812; filter:drop-shadow(0 0 4px rgba(205,165,255,.95)) drop-shadow(0 0 10px rgba(155,89,255,.45)); overflow:visible; }
+.bat .wl, .bat .wr { transform-box:view-box; animation:flap-l var(--f) ease-in-out infinite; transform-origin:47px 18px; }
+.bat .wr { animation-name:flap-r; transform-origin:53px 18px; }
+.b1 { --w:64px; --t:15s; --d:-2s; --b:2.4s; --f:1.7s; top:20px; }
+.b2 { --w:38px; --t:22s; --d:-9s; --b:3.1s; --f:1.4s; top:64px; opacity:.85; }
+.b3 { --w:28px; --t:29s; --d:-20s; --b:2.7s; --f:1.2s; top:36px; opacity:.7; }
+.b4 { --w:48px; --t:19s; --d:-13s; --b:2.2s; --f:1.9s; top:92px; animation-direction:reverse; }
+.b4 svg { transform:scaleX(-1); }
+@keyframes bat-x { from { left:-90px; } to { left:calc(100% + 90px); } }
+@keyframes bat-bob { from { transform:translateY(-16px) rotate(-7deg); } to { transform:translateY(14px) rotate(6deg); } }
+/* five quick beats (wings up, then down and foreshortened), then a glide with the wings held out */
+@keyframes flap-l { 0%, 20%, 40%, 60%, 80% { transform:rotate(26deg) scaleY(1); } 10%, 30%, 50%, 70% { transform:rotate(-24deg) scaleY(.55); } 88%, 100% { transform:rotate(4deg) scaleY(.95); } }
+@keyframes flap-r { 0%, 20%, 40%, 60%, 80% { transform:rotate(-26deg) scaleY(1); } 10%, 30%, 50%, 70% { transform:rotate(24deg) scaleY(.55); } 88%, 100% { transform:rotate(-4deg) scaleY(.95); } }
 .top { position:relative; z-index:1; }
 .fog::after { content:""; position:absolute; inset:0; border-radius:inherit; opacity:.07; mix-blend-mode:overlay;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
