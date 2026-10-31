@@ -727,9 +727,9 @@ class SoundboardCard extends HTMLElement {
     const warmTxt = st.warm ? (conN ? T("connecting_n", conN) : T("ready_n", warmN)) : T("off");
     this.setHTML(".dev-b", presetsHtml + masters + (cfg.guest ? "" : this.motionHtml(cams)) + `
       <div class="dev-t"><div class="dev-row dev-cols"><span class="dev-n">${T("speakers")}</span>${P.map(([, emoji, label]) => `<span class="tg-h" title="${label}"><span>${emoji}</span><small>${label}</small></span>`).join("")}<span class="tg-h" title="${T("level_t2")}"><span>🎚️</span><small>${T("level")}</small></span></div>
-        ${groups}</div>
-      <button class="chip warm ${st.warm ? "on" : ""}" data-act="warm" title="${T("instant_t")}">
-        <ha-icon icon="mdi:flash"></ha-icon> ${T("instant")}: ${warmTxt}</button>`);
+        <div class="warm-row"><button class="chip warm ${st.warm ? "on" : ""}" data-act="warm" title="${T("instant_t")}">
+          <ha-icon icon="mdi:flash"></ha-icon> ${T("instant")}: ${warmTxt}</button></div>
+        ${groups}</div>`);
   }
 
   // HA only, admins only (the server refuses it from guests too)
@@ -1252,7 +1252,7 @@ ha-icon { --mdc-icon-size:18px; }
 .chip.on { background:color-mix(in srgb, var(--sb-accent) 26%, transparent); border-color:var(--sb-accent); font-weight:700; }
 .chip.ghost { border-style:dashed; color:var(--mute); }
 .chip small { opacity:.65; font-weight:400; }
-.warm { align-self:flex-start; }
+.warm-row { padding:8px 0 4px; }
 .warm.on { background:color-mix(in srgb, var(--ecto) 18%, transparent); border-color:var(--ecto); }
 .dot { width:8px; height:8px; border-radius:50%; display:inline-block; flex:none; }
 .dot.warm { background:var(--ecto); box-shadow:0 0 8px var(--ecto); }
