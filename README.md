@@ -352,7 +352,7 @@ by Pictogrammers (Apache 2.0).
 
 ## En français
 
-Une table de sons d'Halloween gratuite : 262 effets (cris, fantômes, sorcières,
+Une boîte à sons d'Halloween gratuite : 262 effets (cris, fantômes, sorcières,
 loups-garous, portes qui grincent, tonnerre...) et 13 ambiances à mélanger. Touchez un
 son, il part. Touchez-en plusieurs, ils s'enchaînent. Ou lancez le **mode hanté** et laissez-le
 faire peur tout seul. L'interface suit la langue du navigateur (bouton EN / FR en haut),
