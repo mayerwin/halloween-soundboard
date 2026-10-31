@@ -61,7 +61,7 @@ const I18N = {
     this_device: "This device", this_device_t: (n) => `${n}: plays on this phone/tablet (pair it with a Bluetooth speaker). Keep this page open.`,
     speakers: "Speakers", level: "Level", level_t2: "This speaker's own level: lower a speaker that is louder than the others",
     devices: "", outdoor: "Outdoor", indoor: "Indoor", all: "all", none: "none", on_x: (a, b) => `${a} on ${b}`, level_of: (n) => `${n} level`,
-    instant: "Instant speakers", instant_t: "Keeps the selected camera and Cast speakers connected so effects start right away instead of after ~10 s. Turns itself off after 6 h. Other announcements on a camera still take over.",
+    instant: "Instant speakers", instant_short: "Instant", instant_t: "Keeps the selected camera and Cast speakers connected so effects start right away instead of after ~10 s. Turns itself off after 6 h. Other announcements on a camera still take over.",
     connecting_n: (n) => `connecting ${n}…`, ready_n: (n) => `${n} ready`, off: "off",
     p_summary: (a, b, c, d, n, mix) => [`🎼 ${a} speakers ${b}%`, `💀 ${c} speakers ${d}%`, n ? `${n} track${n > 1 ? "s" : ""}${mix ? " mixed" : ""}` : ""].filter(Boolean).join(" · "),
     preset_applied: (n) => `Preset “${n}” applied`, volume: "Volume", n_speakers: (n) => `${n} speaker${n > 1 ? "s" : ""}`, no_speaker: "No speaker ticked yet", change: "change",
@@ -108,7 +108,7 @@ const I18N = {
     this_device: "Cet appareil", this_device_t: (n) => `${n} : joue sur ce téléphone/cette tablette (reliez-le à une enceinte Bluetooth). Gardez cette page ouverte.`,
     speakers: "Enceintes", level: "Niveau", level_t2: "Le niveau propre de cette enceinte : baissez celle qui est plus forte que les autres",
     devices: "", outdoor: "Extérieur", indoor: "Intérieur", all: "toutes", none: "aucune", on_x: (a, b) => `${a} sur ${b}`, level_of: (n) => `Niveau ${n}`,
-    instant: "Enceintes instantanées", instant_t: "Garde les caméras et enceintes Cast sélectionnées connectées pour que les effets démarrent tout de suite au lieu d'environ 10 s. S'éteint après 6 h. Les autres annonces sur une caméra restent prioritaires.",
+    instant: "Enceintes instantanées", instant_short: "Instantanées", instant_t: "Garde les caméras et enceintes Cast sélectionnées connectées pour que les effets démarrent tout de suite au lieu d'environ 10 s. S'éteint après 6 h. Les autres annonces sur une caméra restent prioritaires.",
     connecting_n: (n) => `connexion ${n}…`, ready_n: (n) => `${n} prêtes`, off: "éteint",
     p_summary: (a, b, c, d, n, mix) => [`🎼 ${a} enceintes ${b} %`, `💀 ${c} enceintes ${d} %`, n ? `${n} piste${n > 1 ? "s" : ""}${mix ? " mélangées" : ""}` : ""].filter(Boolean).join(" · "),
     preset_applied: (n) => `Préréglage « ${n} » appliqué`, volume: "Volume", n_speakers: (n) => `${n} enceinte${n > 1 ? "s" : ""}`, no_speaker: "Aucune enceinte cochée", change: "changer",
@@ -726,9 +726,8 @@ class SoundboardCard extends HTMLElement {
     const conN = cams.filter((o) => o.ready === "connecting").length;
     const warmTxt = st.warm ? (conN ? T("connecting_n", conN) : T("ready_n", warmN)) : T("off");
     this.setHTML(".dev-b", presetsHtml + masters + (cfg.guest ? "" : this.motionHtml(cams)) + `
-      <div class="dev-t"><div class="dev-row dev-cols"><span class="dev-n">${T("speakers")}</span>${P.map(([, emoji, label]) => `<span class="tg-h" title="${label}"><span>${emoji}</span><small>${label}</small></span>`).join("")}<span class="tg-h" title="${T("level_t2")}"><span>🎚️</span><small>${T("level")}</small></span></div>
-        <div class="warm-row"><button class="chip warm ${st.warm ? "on" : ""}" data-act="warm" title="${T("instant_t")}">
-          <ha-icon icon="mdi:flash"></ha-icon> ${T("instant")}: ${warmTxt}</button></div>
+      <div class="dev-t"><div class="dev-row dev-cols"><span class="dev-n">${T("speakers")}
+          <button class="chip warm sm ${st.warm ? "on" : ""}" data-act="warm" title="${T("instant_t")}"><ha-icon icon="mdi:flash"></ha-icon>${T("instant_short")}: ${warmTxt}</button></span>${P.map(([, emoji, label]) => `<span class="tg-h" title="${label}"><span>${emoji}</span><small>${label}</small></span>`).join("")}<span class="tg-h" title="${T("level_t2")}"><span>🎚️</span><small>${T("level")}</small></span></div>
         ${groups}</div>`);
   }
 
@@ -1252,7 +1251,9 @@ ha-icon { --mdc-icon-size:18px; }
 .chip.on { background:color-mix(in srgb, var(--sb-accent) 26%, transparent); border-color:var(--sb-accent); font-weight:700; }
 .chip.ghost { border-style:dashed; color:var(--mute); }
 .chip small { opacity:.65; font-weight:400; }
-.warm-row { padding:8px 0 4px; }
+.dev-cols .dev-n { flex-wrap:wrap; gap:4px 8px; }
+.chip.warm.sm { padding:3px 9px 3px 6px; font-size:11.5px; font-weight:700; gap:3px; text-transform:none; letter-spacing:0; }
+.chip.warm.sm ha-icon { --mdc-icon-size:14px; }
 .warm.on { background:color-mix(in srgb, var(--ecto) 18%, transparent); border-color:var(--ecto); }
 .dot { width:8px; height:8px; border-radius:50%; display:inline-block; flex:none; }
 .dot.warm { background:var(--ecto); box-shadow:0 0 8px var(--ecto); }
