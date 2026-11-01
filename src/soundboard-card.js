@@ -17,7 +17,7 @@ if (!document.getElementById("soundboard-fonts")) {
 @font-face{font-family:"SB Body";src:url(${FONT_BASE}bricolage-grotesque.woff2) format("woff2");font-weight:200 800;font-display:swap}`;
   document.head.appendChild(f);
 }
-const KIND_ICON = { camera: "mdi:cctv", cast: "mdi:speaker", sonos: "mdi:soundbar", browser: "mdi:cellphone-sound" };
+const KIND_ICON = { camera: "mdi:cctv", cast: "mdi:speaker", sonos: "mdi:soundbar", browser: "mdi:cellphone-sound", bluetooth: "mdi:speaker" };
 const LS = (k, v) => {
   try {
     if (v === undefined) return JSON.parse(localStorage.getItem("soundboard." + k));
@@ -702,7 +702,7 @@ class SoundboardCard extends HTMLElement {
     if (!outs.some((o) => o.id === me)) outs.push({ id: me, name: SB.deviceName, group: "outdoor", kind: "browser", available: true, ready: "ok" });
     const row = (o) => {
       const name = o.id === me ? T("this_device") : o.name;
-      const dot = o.kind === "camera" && o.ready !== "cold" ? `<i class="dot ${o.ready}"></i>` : "";
+      const dot = (o.kind === "camera" || o.kind === "bluetooth") && o.ready !== "cold" ? `<i class="dot ${o.ready}"></i>` : "";
       const t = Math.round((trim[o.id] ?? 1) * 100);
       return `<div class="dev-row ${o.available ? "" : "na"}" title="${esc(o.id === me ? T("this_device_t", o.name) : o.id)}">
         <span class="dev-n"><ha-icon icon="${KIND_ICON[o.kind] || "mdi:speaker"}"></ha-icon><span>${esc(name)}</span>${dot}</span>
@@ -769,12 +769,14 @@ class SoundboardCard extends HTMLElement {
       </details></div>`);
   }
 
-  // "devices": this device first, then other phones / tablets with the page open (they can be
-  // indoors or out); outdoor / indoor: the house speakers
+  // "devices": portable ones, no header (Bluetooth speakers, this device, other phones with the
+  // page open: they can be indoors or out); outdoor / indoor: the house speakers
   groupOuts(outs, g) {
     const me = "browser:" + SB.deviceId;
     if (g === "devices") {
-      return outs.filter((o) => o.kind === "browser" && (o.id === me || o.available)).sort((a, b) => (b.id === me) - (a.id === me));
+      // portable ones: Bluetooth speakers first, then this device, then other phones with the page open
+      const rank = (o) => (o.kind === "bluetooth" ? 0 : o.id === me ? 1 : 2);
+      return outs.filter((o) => o.kind === "bluetooth" || (o.kind === "browser" && (o.id === me || o.available))).sort((a, b) => rank(a) - rank(b));
     }
     return outs.filter((o) => o.group === g && o.kind !== "browser");
   }
