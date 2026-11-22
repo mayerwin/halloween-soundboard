@@ -4,8 +4,13 @@
 // each one when first played, or all at once from the card's "Make it work offline".
 const VERSION = "__VERSION__";
 const SHELL = __SHELL__;
-const APP = `app-${VERSION}`;
-const SOUNDS = "sounds-v1";
+// Sibling sites (one per theme) share an origin, hence one Cache Storage: every cache name
+// carries this site's theme, and a site only ever deletes its own caches.
+const SITE = "__SITE__";
+// caches this site used before the names carried the theme: { sounds: [names], app_prefix }
+const LEGACY = __LEGACY__;
+const APP = `sb-${SITE}-app-${VERSION}`;
+const SOUNDS = `sb-${SITE}-sounds-v1`;
 // origins that serve sounds with CORS, so they can be cached as real responses
 const SOUND_HOSTS = ["assets.mixkit.co", "sound-effects-media.bbcrewind.co.uk"];
 
@@ -15,7 +20,16 @@ self.addEventListener("install", (e) => {
 
 self.addEventListener("activate", (e) => {
   e.waitUntil((async () => {
-    for (const k of await caches.keys()) if (k.startsWith("app-") && k !== APP) await caches.delete(k);
+    for (const k of await caches.keys()) {
+      if (k.startsWith(`sb-${SITE}-app-`) && k !== APP) await caches.delete(k);
+      else if (LEGACY.app_prefix && k.startsWith(LEGACY.app_prefix)) await caches.delete(k);
+      else if ((LEGACY.sounds || []).includes(k)) {
+        // sounds saved for offline use under the old name move over, so they aren't downloaded again
+        const from = await caches.open(k), to = await caches.open(SOUNDS);
+        for (const req of await from.keys()) { const r = await from.match(req); if (r) await to.put(req, r); }
+        await caches.delete(k);
+      }
+    }
     await self.clients.claim();
   })());
 });

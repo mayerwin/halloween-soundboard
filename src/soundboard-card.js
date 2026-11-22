@@ -1,22 +1,25 @@
 // Soundboard card: themed background music + a sound-effect queue across the house speakers.
 // Served by the soundboard integration (custom_components/soundboard), which owns all playback;
 // this file is UI plus the "This device" speaker (a phone/tablet, e.g. paired to a Bluetooth speaker).
+//
+// Themes are data: the library (theme.json) gives the name, colours, categories, French names,
+// a "look" (the scene drawn behind the card, its palette and display font, see LOOKS) and the
+// few words that change with the theme (`words`, over I18N). Nothing here is theme-specific
+// except the looks themselves.
 
-const CAT_EMOJI = {
-  screams: "😱", crying: "😢", laughs: "😈", "creepy-kids": "🧸", ghosts: "👻", voices: "🗣️",
-  monsters: "👹", zombies: "🧟", werewolves: "🐺", "vampires-bats": "🦇", witches: "🧙",
-  animals: "🐈‍⬛", house: "🚪", stingers: "🎻", "weather-bells": "🔔", gore: "🔪", lab: "⚡",
-  "heartbeat-breath": "💓", ambience: "🌫️", other: "🎵",
-};
-// The card's fonts sit next to it (www/fonts/, SIL OFL); @font-face only works in the document.
+// categories a theme.json doesn't describe (audio dropped into a folder of its own)
+const CAT_EMOJI = { ambience: "🌫️", other: "🎵" };
+// The card's fonts sit next to it (www/fonts/, SIL OFL); @font-face only works in the document,
+// so each look's display font is declared there the first time that look is shown.
 const FONT_BASE = new URL("fonts/", import.meta.url).href;
-if (!document.getElementById("soundboard-fonts")) {
+const fontFace = (id, css) => {
+  if (document.getElementById(id)) return;
   const f = document.createElement("style");
-  f.id = "soundboard-fonts";
-  f.textContent = `@font-face{font-family:"SB Display";src:url(${FONT_BASE}pirata-one.woff2) format("woff2");font-display:swap}
-@font-face{font-family:"SB Body";src:url(${FONT_BASE}bricolage-grotesque.woff2) format("woff2");font-weight:200 800;font-display:swap}`;
+  f.id = id;
+  f.textContent = css;
   document.head.appendChild(f);
-}
+};
+fontFace("soundboard-fonts", `@font-face{font-family:"SB Body";src:url(${FONT_BASE}bricolage-grotesque.woff2) format("woff2");font-weight:200 800;font-display:swap}`);
 const KIND_ICON = { camera: "mdi:cctv", cast: "mdi:speaker", sonos: "mdi:soundbar", browser: "mdi:cellphone-sound", bluetooth: "mdi:speaker" };
 const LS = (k, v) => {
   try {
@@ -40,9 +43,9 @@ const I18N = {
   en: {
     sounds_n: (n) => `${n} sounds`, soundboard: "Soundboard",
     tab_speakers: "🔊 Speakers", tab_volume: "🎚️ Volume", tab_sounds: "Sounds", pick_play: "pick &amp; play", on: "on",
-    stop_all: "Stop all", stop_all_t: "Stop everything, everywhere (haunt mode and motion scares too)",
-    lock_house: "🔈 Tap here to enable sound on this device", lock_public: "🕯️ Tap anywhere to wake the dead (turns the sound on)",
-    sfx: "💀 Sound effects", bg: "🎼 Background", hist: "🕯️ History",
+    stop_all: "Stop all", stop_all_t: "Stop everything, everywhere (random mode and motion triggers too)",
+    lock_house: "🔈 Tap here to enable sound on this device", lock_public: "🔈 Tap anywhere to turn the sound on",
+    sfx: "Sound effects", bg: "🎼 Background", hist: "🕯️ History",
     playing: "▶ playing", queued_n: (n) => `${n} queued`, mixed_n: (n) => `${n} mixed`,
     show_hidden: "Show hidden", show_hidden_t: "Hidden ones include those marked for deletion (thumbs down)",
     level_t: "100 % = the background volume; up to 150 % to bring a quiet one forward",
@@ -52,7 +55,7 @@ const I18N = {
     n_mixed: (n) => `${n} mixed`, n_tracks: (n) => `${n} tracks`,
     undone: "undone", undo: "Undo", hist_empty: "Nothing yet. Hiding, favourites, marks and playback show up here; hide / favourite / mark can be undone.",
     presets: "Presets", apply: "Apply", save_current: "＋ Save current", save_current_t: "Save what is ticked now (speakers, volumes, background tracks and levels) under a name",
-    preset_eg: "e.g. “Porch: cameras + storm at 60 %”", delete_preset: (n) => `Delete preset ${n}`,
+    preset_eg: "e.g. “Porch: cameras at 60 %”", delete_preset: (n) => `Delete preset ${n}`,
     background: "Background", effects: "Effects", volume_of: (n) => `${n} volume`,
     hint_public: "Your phone or computer's own volume sets the maximum; these balance the background against the effects.",
     hint_house: "100 % = the ticked speakers at full power. Speakers are turned all the way up while the soundboard uses them, the sliders do the rest, and they get their own volume back afterwards.",
@@ -63,14 +66,14 @@ const I18N = {
     devices: "", outdoor: "Outdoor", indoor: "Indoor", all: "all", none: "none", on_x: (a, b) => `${a} on ${b}`, level_of: (n) => `${n} level`,
     instant: "Instant speakers", instant_short: "Instant", instant_t: "Keeps the selected camera and Cast speakers connected so effects start right away instead of after ~10 s. Turns itself off after 6 h. Other announcements on a camera still take over.",
     connecting_n: (n) => `connecting ${n}…`, ready_n: (n) => `${n} ready`, off: "off",
-    p_summary: (a, b, c, d, n, mix) => [`🎼 ${a} speakers ${b}%`, `💀 ${c} speakers ${d}%`, n ? `${n} track${n > 1 ? "s" : ""}${mix ? " mixed" : ""}` : ""].filter(Boolean).join(" · "),
+    p_summary: (a, b, c, d, n, mix) => [`🎼 ${a} speakers ${b}%`, `${FX} ${c} speakers ${d}%`, n ? `${n} track${n > 1 ? "s" : ""}${mix ? " mixed" : ""}` : ""].filter(Boolean).join(" · "),
     preset_applied: (n) => `Preset “${n}” applied`, volume: "Volume", n_speakers: (n) => `${n} speaker${n > 1 ? "s" : ""}`, no_speaker: "No speaker ticked yet", change: "change",
     replay_all: "Replay all", play_n: (n) => `Play ${n}`, skip: "Skip", clear: "Clear", clear_t: "Clear the queue",
     q_options: "Queue options", plays_on_tap: "plays on tap", build_then_play: "build then Play", gap_s: (n) => `${n}s gap`,
     play_on_tap: "Play on tap", add_pause: "+ Pause", shorter: "Shorter pause", longer: "Longer pause", gap: "Gap between sounds",
     q_empty_tap: "Tap a sound to play it right away; tap more to line them up.", q_empty_build: "Tap sounds to build a sequence, then press Play.",
     waiting: "Waiting for every speaker to be ready, so they start together… ", pinned: (n) => ` → pinned to ${n} speaker(s)`, remove: "remove", gapw: "gap",
-    summoning: "Summoning the sounds…", search_n: (n) => `Search ${n} sounds`, search: "Search sounds", tap_does: "What a tap does",
+    summoning: "Loading the sounds…", search_n: (n) => `Search ${n} sounds`, search: "Search sounds", tap_does: "What a tap does",
     mode_play: "Play", mode_preview: "Preview here", mode_play_t: "A tap plays it on the speakers (or lines it up)", mode_preview_t: "A tap only plays it here, for you",
     all_c: "All", favorites: "Favorites", no_match: "No sounds match.", queued: "queued",
     fav_add: "Favorite", fav_rm: "Remove from favorites", down_rm: "Unmark (keep it)", down_add_pub: "Dislike (also hides it)", down_add: "Mark for deletion (also hides it)",
@@ -79,17 +82,19 @@ const I18N = {
     preset_name: "Name this preset (what plays where, volumes, background tracks):", preset_del: (n) => `Delete the preset “${n}”?`,
     reset_q: "Forget every favourite, hidden sound, preset and setting stored in this browser?", reset_done: "Back to a fresh soundboard",
     imported: "Imported", import_failed: (e) => `Import failed: ${e}`, tick_first: "Tick at least one speaker for effects first (Speakers tab)",
-    haunt: "👻 Haunt mode", haunt_hint: (a, b) => `A random scare every ${a} to ${b} s, by itself.`, haunt_opts: "Haunt options",
+    haunt: "Random mode", haunt_hint: (a, b) => `A random sound every ${a} to ${b} s, by itself.`, haunt_opts: "Random mode options",
     haunt_every: "Every", haunt_to: "to", haunt_from: "Pick from", favs_only: "♥ Favourites only", all_cats: "All categories",
-    motion: "🏃 Motion scares", motion_hint: "When a camera sees a person, it plays a random scare (from the haunt pool) on that camera's speaker.",
+    motion: "🏃 Motion triggers", motion_hint: "When a camera sees a person, it plays a random sound (from the random mode's pool) on that camera's speaker.",
     motion_cool: "At most once per camera every", cameras: "Cameras", all_cams: "all",
+    voices_t: "Voices: which languages to show", voices_in: (l) => `Spoken in ${{ en: "English", fr: "French" }[l] || l}`,
+    scenes: "🎬 Scenes, one tap", scene_t: (n, d) => `Lines up ${n} sounds (${d}), with their pauses`,
   },
   fr: {
     sounds_n: (n) => `${n} sons`, soundboard: "Boîte à sons",
     tab_speakers: "🔊 Enceintes", tab_volume: "🎚️ Volume", tab_sounds: "Sons", pick_play: "choisir &amp; jouer", on: "en cours",
-    stop_all: "Tout arrêter", stop_all_t: "Tout arrêter, partout (mode hanté et frayeurs au mouvement aussi)",
-    lock_house: "🔈 Touchez ici pour activer le son sur cet appareil", lock_public: "🕯️ Touchez n'importe où pour réveiller les morts (active le son)",
-    sfx: "💀 Effets sonores", bg: "🎼 Ambiance", hist: "🕯️ Historique",
+    stop_all: "Tout arrêter", stop_all_t: "Tout arrêter, partout (mode aléatoire et déclenchement au mouvement aussi)",
+    lock_house: "🔈 Touchez ici pour activer le son sur cet appareil", lock_public: "🔈 Touchez n'importe où pour activer le son",
+    sfx: "Effets sonores", bg: "🎼 Ambiance", hist: "🕯️ Historique",
     playing: "▶ en cours", queued_n: (n) => `${n} en attente`, mixed_n: (n) => `${n} mélangées`,
     show_hidden: "Voir les masqués", show_hidden_t: "Les masqués incluent ceux marqués pour suppression (pouce en bas)",
     level_t: "100 % = le volume d'ambiance ; jusqu'à 150 % pour faire ressortir une piste discrète",
@@ -99,7 +104,7 @@ const I18N = {
     n_mixed: (n) => `${n} mélangées`, n_tracks: (n) => `${n} pistes`,
     undone: "annulé", undo: "Annuler", hist_empty: "Rien pour l'instant. Masquages, favoris, marques et lectures apparaissent ici ; masquer / favori / marque peuvent être annulés.",
     presets: "Préréglages", apply: "Appliquer", save_current: "＋ Enregistrer", save_current_t: "Enregistre ce qui est coché (enceintes, volumes, pistes d'ambiance et niveaux) sous un nom",
-    preset_eg: "ex. « Entrée : caméras + orage à 60 % »", delete_preset: (n) => `Supprimer le préréglage ${n}`,
+    preset_eg: "ex. « Entrée : caméras à 60 % »", delete_preset: (n) => `Supprimer le préréglage ${n}`,
     background: "Ambiance", effects: "Effets", volume_of: (n) => `Volume ${n}`,
     hint_public: "Le volume de votre téléphone ou ordinateur fixe le maximum ; ces curseurs équilibrent l'ambiance et les effets.",
     hint_house: "100 % = les enceintes cochées à pleine puissance. Elles sont montées au maximum pendant que la boîte à sons les utilise, les curseurs font le reste, puis elles retrouvent leur volume.",
@@ -110,14 +115,14 @@ const I18N = {
     devices: "", outdoor: "Extérieur", indoor: "Intérieur", all: "toutes", none: "aucune", on_x: (a, b) => `${a} sur ${b}`, level_of: (n) => `Niveau ${n}`,
     instant: "Enceintes instantanées", instant_short: "Instantanées", instant_t: "Garde les caméras et enceintes Cast sélectionnées connectées pour que les effets démarrent tout de suite au lieu d'environ 10 s. S'éteint après 6 h. Les autres annonces sur une caméra restent prioritaires.",
     connecting_n: (n) => `connexion ${n}…`, ready_n: (n) => `${n} prêtes`, off: "éteint",
-    p_summary: (a, b, c, d, n, mix) => [`🎼 ${a} enceintes ${b} %`, `💀 ${c} enceintes ${d} %`, n ? `${n} piste${n > 1 ? "s" : ""}${mix ? " mélangées" : ""}` : ""].filter(Boolean).join(" · "),
+    p_summary: (a, b, c, d, n, mix) => [`🎼 ${a} enceintes ${b} %`, `${FX} ${c} enceintes ${d} %`, n ? `${n} piste${n > 1 ? "s" : ""}${mix ? " mélangées" : ""}` : ""].filter(Boolean).join(" · "),
     preset_applied: (n) => `Préréglage « ${n} » appliqué`, volume: "Volume", n_speakers: (n) => `${n} enceinte${n > 1 ? "s" : ""}`, no_speaker: "Aucune enceinte cochée", change: "changer",
     replay_all: "Tout rejouer", play_n: (n) => `Jouer ${n}`, skip: "Passer", clear: "Vider", clear_t: "Vider la file",
     q_options: "Options de la file", plays_on_tap: "joue au toucher", build_then_play: "composer puis Jouer", gap_s: (n) => `${n} s d'écart`,
     play_on_tap: "Jouer au toucher", add_pause: "+ Pause", shorter: "Pause plus courte", longer: "Pause plus longue", gap: "Écart entre les sons",
     q_empty_tap: "Touchez un son pour le jouer tout de suite ; touchez-en d'autres pour les enchaîner.", q_empty_build: "Touchez des sons pour composer une séquence, puis Jouer.",
     waiting: "En attente que toutes les enceintes soient prêtes, pour démarrer ensemble… ", pinned: (n) => ` → réservé à ${n} enceinte(s)`, remove: "retirer", gapw: "écart",
-    summoning: "Invocation des sons…", search_n: (n) => `Chercher parmi ${n} sons`, search: "Chercher un son", tap_does: "Effet d'un toucher",
+    summoning: "Chargement des sons…", search_n: (n) => `Chercher parmi ${n} sons`, search: "Chercher un son", tap_does: "Effet d'un toucher",
     mode_play: "Jouer", mode_preview: "Écouter ici", mode_play_t: "Un toucher le joue sur les enceintes (ou l'ajoute à la file)", mode_preview_t: "Un toucher le joue seulement ici, pour vous",
     all_c: "Tous", favorites: "Favoris", no_match: "Aucun son ne correspond.", queued: "en file",
     fav_add: "Favori", fav_rm: "Retirer des favoris", down_rm: "Démarquer (le garder)", down_add_pub: "Je n'aime pas (le masque aussi)", down_add: "Marquer pour suppression (le masque aussi)",
@@ -126,19 +131,15 @@ const I18N = {
     preset_name: "Nom du préréglage (ce qui joue où, volumes, pistes d'ambiance) :", preset_del: (n) => `Supprimer le préréglage « ${n} » ?`,
     reset_q: "Oublier tous les favoris, sons masqués, préréglages et réglages enregistrés dans ce navigateur ?", reset_done: "Boîte à sons remise à neuf",
     imported: "Importé", import_failed: (e) => `Échec de l'import : ${e}`, tick_first: "Cochez d'abord au moins une enceinte pour les effets (onglet Enceintes)",
-    haunt: "👻 Mode hanté", haunt_hint: (a, b) => `Une frayeur au hasard toutes les ${a} à ${b} s, toute seule.`, haunt_opts: "Options du mode hanté",
+    haunt: "Mode aléatoire", haunt_hint: (a, b) => `Un son au hasard toutes les ${a} à ${b} s, tout seul.`, haunt_opts: "Options du mode aléatoire",
     haunt_every: "Toutes les", haunt_to: "à", haunt_from: "Choisir parmi", favs_only: "♥ Favoris seulement", all_cats: "Toutes les catégories",
-    motion: "🏃 Frayeurs au mouvement", motion_hint: "Quand une caméra voit quelqu'un, elle joue une frayeur au hasard (parmi celles du mode hanté) sur son haut-parleur.",
+    motion: "🏃 Déclenchement au mouvement", motion_hint: "Quand une caméra voit quelqu'un, elle joue un son au hasard (parmi ceux du mode aléatoire) sur son haut-parleur.",
     motion_cool: "Au plus une fois par caméra toutes les", cameras: "Caméras", all_cams: "toutes",
+    voices_t: "Voix : quelles langues afficher", voices_in: (l) => `En ${{ en: "anglais", fr: "français" }[l] || l}`,
+    scenes: "🎬 Scènes, en un geste", scene_t: (n, d) => `Enchaîne ${n} sons (${d}), avec leurs pauses`,
   },
 };
-const CAT_FR = {
-  screams: "Cris", crying: "Pleurs & lamentations", laughs: "Rires maléfiques", "creepy-kids": "Enfants inquiétants",
-  ghosts: "Fantômes", voices: "Voix", monsters: "Monstres", zombies: "Zombies", werewolves: "Loups-garous",
-  "vampires-bats": "Vampires & chauves-souris", witches: "Sorcières", animals: "Animaux sinistres", house: "Maison hantée",
-  stingers: "Coups de théâtre", "weather-bells": "Tonnerre & cloches", gore: "Gore", lab: "Labo du savant fou",
-  "heartbeat-breath": "Cœur & souffle", creatures: "Créatures", ambience: "Ambiances", other: "Autres",
-};
+const CAT_FR = { ambience: "Ambiances", other: "Autres" };
 // config.lang, else the page's choice (public site), else the HA user's language, else the browser's
 let LANG = "en";
 const setLang = (cfgLang, hass) => {
@@ -146,17 +147,73 @@ const setLang = (cfgLang, hass) => {
   LANG = /^fr/i.test(String(want)) ? "fr" : "en";
   return LANG;
 };
+// the current theme's own words (theme.json "words": {en: {...}, fr: {...}}), over I18N; in a
+// theme's words, {0} and {1} stand for the arguments of the I18N function they replace
+let THEME_WORDS = {};
+// the theme's glyph for effects (💀 at Halloween) and for its random mode (👻)
+let FX = "🔊", MODE = "🎲";
 const T = (k, ...a) => {
-  const v = I18N[LANG][k] ?? I18N.en[k];
-  return typeof v === "function" ? v(...a) : v ?? k;
+  const v = THEME_WORDS[LANG]?.[k] ?? I18N[LANG][k] ?? THEME_WORDS.en?.[k] ?? I18N.en[k];
+  if (typeof v === "function") return v(...a);
+  return v == null ? k : String(v).replace(/\{(\d)\}/g, (m, i) => a[i] ?? m);
 };
 // a sound's title in the UI language; what a voice SAYS stays verbatim (kept as is in title_fr)
 const ttl = (s) => (LANG === "fr" && s?.title_fr) || s?.title || "";
+const catName = (cats, c) => (LANG === "fr" && (cats[c]?.name_fr || CAT_FR[c])) || cats[c]?.name || c.replace(/-/g, " ");
+// languages a spoken sound can be in (library items carry "lang"); the card can show one or both
+const VOICE_LANGS = ["en", "fr"];
+
+// ----- looks: the scene behind the card, its palette (STYLE, :host([data-look])) and display font -----
 // a bat silhouette: the two wings flap (and glide now and then) around the shoulders, see .bat CSS
 const BAT_SVG = `<svg viewBox="0 0 100 44"><path class="wl" d="M47 16C38 8 22 4 4 10c6 3 8 7 7 12 5-3 9-2 11 3 4-4 9-4 12 1 4-4 9-4 13 0z"/>
 <path class="wr" d="M53 16c9-8 25-12 43-6-6 3-8 7-7 12-5-3-9-2-11 3-4-4-9-4-12 1-4-4-9-4-13 0z"/>
 <path d="M46 9l1.5-6 2 5h1l2-5 1.5 6c1 2 1 4 0 5 2 3 2 9 0 14-1 2-2 3-4 3s-3-1-4-3c-2-5-2-11 0-14-1-1-1-3 0-5z"/></svg>`;
-const catName = (cats, c) => (LANG === "fr" && CAT_FR[c]) || cats[c]?.name || c.replace(/-/g, " ");
+// a reindeer facing right; its legs gallop (.lf front, .lb back), see .sleigh CSS
+const REINDEER = (x) => `<g transform="translate(${x} 0)"><path d="M3 23c2-6 9-8 17-6l6-5c1-2 3-3 5-2l2 2-3 2-2 4c-2 4-4 6-9 7-6 1-12 1-16-2z"/>
+<path class="ant" d="M27 12l-2-7m2 7l4-5m-6-1l-4-2m4 2l1-4"/>
+<path class="lf" d="M19 26l3 8m-2-8l-1 8"/><path class="lb" d="M7 25l-3 8m5-8l1 8"/></g>`;
+// Santa's sleigh pulled by four reindeer, facing right: high back, Santa (hat flying back) holding
+// the reins, his sack, the front curling up into a scroll, runners on two struts
+const SLEIGH_SVG = `<svg viewBox="0 0 250 44"><g class="deer">${REINDEER(122)}${REINDEER(152)}${REINDEER(182)}${REINDEER(212)}</g>
+<path class="reins" d="M70 13c18 4 40 6 58 8"/>
+<path d="M8 38c-4 0-6-2-6-4h3c0 1 1 2 3 2h80c4 0 6-2 6-5l3 1c0 4-4 6-9 6z"/><path d="M22 30h3v6h-3zM70 30h3v6h-3z"/>
+<path d="M12 31C8 23 8 12 12 8c3-2 6 0 6 4l2 6h46c4 0 8-4 12-10 2-4 8-5 10-1 2 4-2 6-4 5-3 4-6 12-10 19z"/>
+<path d="M44 18c0-6 3-9 8-9s8 3 8 9z"/><circle cx="52" cy="6.5" r="3.6"/><path d="M48.5 4.5c1-4 6-5 9-2-3-1-8 0-12 3z"/><circle cx="44.5" cy="6" r="1.7"/>
+<path d="M58 12l11-1 .5 2.4-11 1.6z"/><path d="M23 18c-1-5 1-8 4-9l1-3 3 2c5 0 9 4 9 10z"/></svg>`;
+// Saint Nicholas (mitre, beard, crozier) walking beside his donkey, facing left; the donkey
+// carries a basket of clementines
+const NICOLAS_SVG = `<svg viewBox="0 0 124 66"><g class="donkey"><path d="M62 31c1-6 9-8 20-8 10 0 16 2 18 8 1 6-1 11-7 13-8 2-21 2-28-1-3-2-4-7-3-12z"/>
+<path d="M64 31c-3-4-7-9-11-13-2-2-4-3-6-3l-6 1c-2 0-4 2-4 4l1 3c1 1 3 1 5 0 2 0 4 1 5 3 3 4 6 8 9 11z"/>
+<path d="M48 15c-2-5-2-10 0-13 2 3 3 8 2 13zm3 0c1-5 4-9 7-11 0 3-2 8-5 12z"/><path d="M99 28c4 1 6 6 6 11l-1 3-2-1c1-3 0-8-3-10z"/>
+<path d="M71 25l1-7h17l1 7z"/><circle class="fruit" cx="76" cy="17" r="2.6"/><circle class="fruit" cx="82" cy="16.4" r="2.6"/>
+<path class="lf" d="M67 41l-2 19h3.4l2-18zm6 1l1 18h3.4l-1-18z"/><path class="lb" d="M88 41l2 19h3.4l-1-19zm6-1l3 18h3.4l-3-18z"/></g>
+<g class="saint"><path d="M22 24c-6 6-9 22-10 40h22c-1-18-3-34-9-40z"/><circle cx="23" cy="19" r="4.6"/>
+<path d="M18 15c0-6 2-10 5-12 3 2 5 6 5 12z"/><path d="M19 22c2 5 6 5 8 0l-1 10c-2 2-5 2-7 0z"/>
+<path class="crozier" d="M8 64V13c0-6 8-7 8-1 0 3-4 3-4 1"/></g></svg>`;
+const LOOKS = {
+  // Halloween: fog, a lightning flash now and then, bats crossing the moon
+  night: {
+    font: ["SB Night", "pirata-one.woff2"],
+    scene: () => `<div class="fog"></div><div class="flash-sky"></div>
+      <div class="bats"><i class="moon"></i>${[1, 2, 3, 4].map((n) => `<span class="bat b${n}"><span class="bob">${BAT_SVG}</span></span>`).join("")}</div>`,
+  },
+  // Christmas: snowfall, twinkling stars, a string of lights, the sleigh crossing the moon, and
+  // Saint Nicholas walking by with his donkey now and then
+  winter: {
+    font: ["SB Winter", "berkshire-swash.woff2"],
+    scene: () => `<div class="snow"><i class="s1"></i><i class="s2"></i><i class="s3"></i></div>
+      <div class="sky"><i class="moon"></i>${[1, 2, 3, 4, 5, 6, 7, 8].map((n) => `<i class="star t${n}"></i>`).join("")}
+        <span class="sleigh"><span class="bob">${SLEIGH_SVG}</span></span>
+        <span class="nicolas"><span class="step">${NICOLAS_SVG}</span></span></div>
+      <div class="lights">${Array.from({ length: 14 }, () => `<svg viewBox="0 0 120 34"><path d="M0 4Q60 28 120 4"/>
+        <ellipse cx="22" cy="17" rx="4.4" ry="6.6"/><ellipse cx="60" cy="23" rx="4.4" ry="6.6"/><ellipse cx="98" cy="17" rx="4.4" ry="6.6"/></svg>`).join("")}</div>`,
+  },
+};
+const lookOf = (name) => (LOOKS[name] ? name : "night");
+const useLookFont = (name) => {
+  const [family, file] = LOOKS[name].font;
+  fontFace(`soundboard-font-${name}`, `@font-face{font-family:"${family}";src:url(${FONT_BASE}${file}) format("woff2");font-display:swap}`);
+};
 
 // ---------------------------------------------------------------------------------------
 // Page-level controller: one subscription + one audio engine per browser tab.
@@ -226,9 +283,33 @@ class SoundboardController {
 
   async loadLibrary(theme) {
     this.libTheme = theme;
-    this.lib = await this.hass.callWS({ type: "soundboard/library", theme });
+    const lib = await this.hass.callWS({ type: "soundboard/library", theme });
+    if (this.libTheme !== theme) return; // switched again meanwhile
+    this.lib = lib;
+    THEME_WORDS = lib?.words || {};
+    FX = lib?.fx_emoji || "🔊";
+    MODE = lib?.mode_emoji || "🎲";
     this.render(true);
   }
+
+  // spoken sounds carry "lang": the languages this library has, and the ones shown (settings
+  // voice_langs; none set = all of them)
+  voiceLangs() {
+    if (this._vlLib !== this.lib) {
+      this._vlLib = this.lib;
+      const all = [...(this.lib?.sfx || []), ...(this.lib?.music || [])];
+      this._vl = VOICE_LANGS.filter((l) => all.some((s) => s.lang === l));
+    }
+    return this._vl;
+  }
+
+  shownLangs() {
+    const have = this.voiceLangs();
+    const want = (this.state?.settings?.voice_langs || []).filter((l) => have.includes(l));
+    return want.length ? want : have;
+  }
+
+  langOk(s, shown = this.shownLangs()) { return !s.lang || shown.includes(s.lang); }
 
   render(full = false) { for (const c of this.cards) c.update(full); }
 
@@ -469,9 +550,7 @@ class SoundboardCard extends HTMLElement {
     const root = this.attachShadow({ mode: "open" });
     root.innerHTML = `<style>${STYLE}</style>
       <div class="wrap ${this.config.standalone ? "standalone" : ""}">
-        <div class="fog" aria-hidden="true"></div>
-        <div class="flash-sky" aria-hidden="true"></div>
-        <div class="bats" aria-hidden="true"><i class="moon"></i>${[1, 2, 3, 4].map((n) => `<span class="bat b${n}"><span class="bob">${BAT_SVG}</span></span>`).join("")}</div>
+        <div class="backdrop" aria-hidden="true"></div>
         <header class="top"></header>
         <nav class="bar"></nav>
         <div class="lock" hidden></div>
@@ -481,6 +560,7 @@ class SoundboardCard extends HTMLElement {
           <div class="sec-b">
             <div class="via" data-panel="sfx"></div>
             <div class="row ctl fx-ctl"></div>
+            <div class="scenes"></div>
             <div class="haunt"></div>
             <div class="queue"></div>
             <div class="bank-tools"></div>
@@ -528,10 +608,19 @@ class SoundboardCard extends HTMLElement {
     if (this._lang !== LANG) { this._lang = LANG; full = true; }
     this.style.setProperty("--sb-accent", theme.accent || "#ff7518");
     this.style.setProperty("--sb-accent2", theme.accent2 || "#9b59ff");
+    // the library's look wins (it is the theme being shown); the theme list's until it loads
+    const look = lookOf(SB.lib?.look || theme.look);
+    if (this._look !== look) {
+      this._look = look;
+      useLookFont(look);
+      this.dataset.look = look;
+      this.$(".backdrop").innerHTML = LOOKS[look].scene();
+      this.dispatchEvent(new CustomEvent("soundboard-look", { detail: { look }, bubbles: true, composed: true }));
+    }
     const lock = this.$(".lock");
     lock.hidden = !(SB.locked && this.thisDeviceSelected());
     this.setHTML(".lock", this.config.standalone ? T("lock_public") : T("lock_house"));
-    this.setHTML(".fx-h", T("sfx"));
+    this.setHTML(".fx-h", `${FX} ${T("sfx")}`);
     this.setHTML(".music-h", T("bg"));
     this.setHTML(".hist-h", T("hist"));
     for (const s of ["music", "fx", "hist"]) this.$(`.sec.${s}`).classList.toggle("collapsed", !!this.ui.collapsed[s]);
@@ -543,6 +632,7 @@ class SoundboardCard extends HTMLElement {
     this.renderVia("music");
     this.renderVia("sfx");
     this.renderFxControls();
+    this.renderScenes();
     this.renderHaunt();
     this.renderQueue();
     this.renderHistory();
@@ -550,7 +640,7 @@ class SoundboardCard extends HTMLElement {
     const q = st.queue;
     const cur = q.items.find((i) => i.uid === q.current && !i.waiting);
     const queued = q.items.filter((i) => i.status === "pending" && i.type === "sound").map((i) => i.id);
-    const bankKey = JSON.stringify([LANG, SB.libTheme, SB.lib?.sfx?.length, this.ui, st.hidden?.[SB.libTheme], st.marks?.[SB.libTheme], cur?.id, queued]);
+    const bankKey = JSON.stringify([LANG, SB.libTheme, SB.lib?.sfx?.length, this.ui, st.hidden?.[SB.libTheme], st.marks?.[SB.libTheme], st.settings.voice_langs, cur?.id, queued]);
     if (full || bankKey !== this._bankKey) {
       this._bankKey = bankKey;
       this.renderBank(cur, queued);
@@ -577,13 +667,14 @@ class SoundboardCard extends HTMLElement {
   renderTop(theme) {
     const st = SB.state;
     const themes = [...(st.themes || [])].sort((a, b) => (a.order ?? 99) - (b.order ?? 99));
-    const n = SB.lib ? SB.lib.sfx.filter((s) => !SB.isHidden(s.id)).length : 0;
-    const name = LANG === "fr" && theme.id === "halloween" ? "Halloween" : theme.name;
+    const shown = SB.shownLangs();
+    const n = SB.lib ? SB.lib.sfx.filter((s) => !SB.isHidden(s.id) && SB.langOk(s, shown)).length : 0;
+    const name = (t) => (LANG === "fr" && t.name_fr) || t.name;
     this.setHTML(".top", `
-      <div class="brand"><span class="emoji">${esc(theme.emoji || "🎃")}</span>
-        <div><div class="title">${esc(name || T("soundboard"))}</div>
+      <div class="brand"><span class="emoji">${esc(theme.emoji || "🎵")}</span>
+        <div><div class="title">${esc(name(theme) || T("soundboard"))}</div>
         <div class="subtitle">${T("soundboard")}${n ? ` · ${T("sounds_n", n)}` : ""}</div></div></div>
-      ${themes.length > 1 ? `<div class="themes">${themes.map((t) => `<button class="chip theme ${t.id === st.settings.theme ? "on" : ""}" data-act="theme" data-id="${esc(t.id)}">${esc(t.emoji || "")} ${esc(t.name)}</button>`).join("")}</div>` : ""}
+      ${themes.length > 1 ? `<div class="themes">${themes.map((t) => `<button class="chip theme ${t.id === st.settings.theme ? "on" : ""}" data-act="theme" data-id="${esc(t.id)}">${esc(t.emoji || "")} ${esc(name(t))}</button>`).join("")}</div>` : ""}
       ${this.config.standalone ? `<div class="langs" role="group" aria-label="Language">${["en", "fr"].map((l) =>
         `<button class="chip lang ${LANG === l ? "on" : ""}" data-act="lang" data-id="${l}" aria-pressed="${LANG === l}">${l.toUpperCase()}</button>`).join("")}</div>` : ""}`);
   }
@@ -595,11 +686,11 @@ class SoundboardCard extends HTMLElement {
       <span class="tab-l">${label}</span><small class="tab-sub">${sub}</small></button>`;
     const pct = (v) => `${Math.round(v * 100)}%`;
     const spk = this.config.standalone
-      ? tab("spk", T("tab_volume"), `🎼 ${pct(s.music.volume)} · 💀 ${pct(s.sfx.volume)}`)
-      : tab("spk", T("tab_speakers"), `🎼 ${s.music.speakers.length} · 💀 ${s.sfx.speakers.length}`);
+      ? tab("spk", T("tab_volume"), `🎼 ${pct(s.music.volume)} · ${FX} ${pct(s.sfx.volume)}`)
+      : tab("spk", T("tab_speakers"), `🎼 ${s.music.speakers.length} · ${FX} ${s.sfx.speakers.length}`);
     const haunt = s.haunt?.on;
-    const live = [m.playing ? `🎼 ${T("on")}` : "", q.running ? `💀 ${T("on")}` : "", haunt ? "👻" : "", s.motion?.on && !this.config.guest ? "🏃" : ""].filter(Boolean).join(" · ");
-    this.setHTML(".bar", spk + tab("snd", `${esc(theme.emoji || "🎃")} ${T("tab_sounds")}`, live || T("pick_play"))
+    const live = [m.playing ? `🎼 ${T("on")}` : "", q.running ? `${FX} ${T("on")}` : "", haunt ? MODE : "", s.motion?.on && !this.config.guest ? "🏃" : ""].filter(Boolean).join(" · ");
+    this.setHTML(".bar", spk + tab("snd", `${esc(theme.emoji || "🎵")} ${T("tab_sounds")}`, live || T("pick_play"))
       + `<button class="stopall ${m.playing || q.running || haunt ? "live" : ""}" data-act="stopall" title="${T("stop_all_t")}"><ha-icon icon="mdi:stop-circle"></ha-icon><span>${T("stop_all")}</span></button>`);
   }
 
@@ -612,7 +703,8 @@ class SoundboardCard extends HTMLElement {
     this.setHTML(".music-tools", this.config.guest || !hiddenM.length ? "" : `<label class="tog sm" title="${T("show_hidden_t")}">
         <input type="checkbox" data-act="showhiddenmusic" ${this.ui.showHiddenMusic ? "checked" : ""}> ${T("show_hidden")} <small class="muted">${hiddenM.length}${downM ? ` · ${downM} 👎` : ""}</small></label>`);
     // a selected track stays listed even when hidden, so it can be unticked
-    const tracks = SB.favFirst(lib.music.filter((t) => this.ui.showHiddenMusic || !SB.isHidden(t.id) || sel.has(t.id)));
+    const shownL = SB.shownLangs();
+    const tracks = SB.favFirst(lib.music.filter((t) => (SB.langOk(t, shownL) && (this.ui.showHiddenMusic || !SB.isHidden(t.id))) || sel.has(t.id)));
     const layers = m.playing ? m.layers : [];
     const levels = ms.levels || {};
     this.setHTML(".tracks", tracks.length ? tracks.map((t) => {
@@ -664,10 +756,10 @@ class SoundboardCard extends HTMLElement {
       : `<div class="empty">${T("hist_empty")}</div>`);
   }
 
-  // Speakers tab: presets, the two masters, motion scares, one row per speaker (🎼 / 💀 + its level)
+  // Speakers tab: presets, the two masters, motion scares, one row per speaker (🎼 / effects + its level)
   renderDevices() {
     const st = SB.state, s = st.settings, cfg = this.config;
-    const P = [["music", "🎼", T("background")], ["sfx", "💀", T("effects")]];
+    const P = [["music", "🎼", T("background")], ["sfx", FX, T("effects")]];
     const master = ([p, emoji, label]) => {
       const v = Math.round(s[p].volume * 100);
       return `<div class="mvol"><span class="mvol-l">${emoji} ${label}</span>
@@ -683,7 +775,7 @@ class SoundboardCard extends HTMLElement {
     const masters = `<div class="masters">${P.map(master).join("")}
       <div class="hint">${cfg.standalone ? T("hint_public") : T("hint_house")}</div></div>`;
     if (cfg.standalone) {
-      const offlineDone = LS("offline_done");
+      const offlineDone = LS(`offline_done.${SB.libTheme}`);
       this.setHTML(".dev-b", presetsHtml + masters + `
         <div class="data"><span class="lbl">${T("your_data")}</span>
           <span class="hint">${T("data_hint")}</span>
@@ -747,6 +839,30 @@ class SoundboardCard extends HTMLElement {
     </div>`;
   }
 
+  // Scenes (library "scenes"): a whole sequence queued with one tap, e.g. Saint Nicholas arriving:
+  // little bells, the donkey up the path, three knocks, his greeting. An item is a sound id, a
+  // pause ({pause: s}) or a spoken line ({voice: {en: id, fr: id}}, said in a language shown)
+  sceneItems(sc) {
+    const have = new Set((SB.lib?.sfx || []).map((x) => x.id));
+    const shown = SB.shownLangs();
+    const lang = shown.includes(LANG) ? LANG : shown[0];
+    return (sc.items || []).map((it) => {
+      if (typeof it === "string") return have.has(it) ? { type: "sound", id: it, theme: SB.libTheme } : null;
+      if (it.pause) return { type: "pause", duration: Math.min(120, Math.max(0.5, +it.pause)) };
+      const id = it.voice && (it.voice[lang] || Object.values(it.voice)[0]);
+      return id && have.has(id) ? { type: "sound", id, theme: SB.libTheme } : null;
+    }).filter(Boolean);
+  }
+
+  renderScenes() {
+    const scenes = (SB.lib?.scenes || []).map((sc) => [sc, this.sceneItems(sc)]).filter(([, items]) => items.some((i) => i.type === "sound"));
+    if (!scenes.length) { this.setHTML(".scenes", ""); return; }
+    const dur = (items) => items.reduce((t, i) => t + (i.type === "pause" ? i.duration : SB.lib.sfx.find((x) => x.id === i.id)?.duration || 0), 0);
+    this.setHTML(".scenes", `<div class="scenes-in"><span class="lbl">${T("scenes")}</span><div class="chips">${scenes.map(([sc, items]) =>
+      `<button class="chip scene" data-act="scene" data-id="${esc(sc.id)}" title="${esc(T("scene_t", items.filter((i) => i.type === "sound").length, fmtDur(dur(items))))}">
+        <span class="sc-e">${esc(sc.emoji || "🎬")}</span>${esc((LANG === "fr" && sc.name_fr) || sc.name)}<small>${fmtDur(dur(items))}</small></button>`).join("")}</div></div>`);
+  }
+
   // Effects section: haunt mode (a random scare every few seconds, by itself)
   renderHaunt() {
     const h = SB.state.settings.haunt;
@@ -755,7 +871,7 @@ class SoundboardCard extends HTMLElement {
     const catIds = [...new Set(SB.lib.sfx.map((s) => s.category))].sort((a, b) => (cats[a]?.order ?? 99) - (cats[b]?.order ?? 99) || a.localeCompare(b));
     const picked = new Set(h.cats || []);
     this.setHTML(".haunt", `<div class="haunt-in ${h.on ? "on" : ""}">
-      <label class="tog big"><input type="checkbox" data-act="haunt" ${h.on ? "checked" : ""}> ${T("haunt")}</label>
+      <label class="tog big"><input type="checkbox" data-act="haunt" ${h.on ? "checked" : ""}> ${MODE} ${T("haunt")}</label>
       <span class="hint">${T("haunt_hint", h.min_s, h.max_s)}</span>
       <details class="h-opts" ${this.ui.hopts ? "open" : ""}><summary>${T("haunt_opts")}</summary>
         <div class="ctl-line gap"><span>${T("haunt_every")}</span>
@@ -828,7 +944,7 @@ class SoundboardCard extends HTMLElement {
         <div class="ctl-line gap"><span>${T("gap")}</span>
           <input type="range" min="0" max="120" step="1" value="${s.gap}" data-act="gap" aria-label="${T("gap")}"><b class="gap-v">${s.gap}s</b></div>
       </details>`);
-    this.setHTML(".fx-sub", q.running ? T("playing") : pending ? T("queued_n", pending) : SB.state.settings.haunt?.on ? "👻" : "");
+    this.setHTML(".fx-sub", q.running ? T("playing") : pending ? T("queued_n", pending) : SB.state.settings.haunt?.on ? MODE : "");
   }
 
   renderQueue() {
@@ -858,7 +974,9 @@ class SoundboardCard extends HTMLElement {
     if (!lib) { this.setHTML(".bank", `<div class="empty">${T("summoning")}</div>`); return; }
     const ui = this.ui;
     const cats = lib.categories || {};
-    const all = lib.sfx;
+    // voices in a language that isn't shown are left out everywhere, counts included
+    const langs = SB.voiceLangs(), shownL = SB.shownLangs();
+    const all = lib.sfx.filter((s) => SB.langOk(s, shownL));
     const hiddenN = all.filter((s) => SB.isHidden(s.id)).length;
     const downN = all.filter((s) => SB.marks(s.id).down).length;
     const showHidden = ui.showHidden;
@@ -868,13 +986,18 @@ class SoundboardCard extends HTMLElement {
       (cats[a]?.order ?? 99) - (cats[b]?.order ?? 99) || a.localeCompare(b));
     const counts = {};
     for (const s of visible) counts[s.category] = (counts[s.category] || 0) + 1;
+    const langSeg = langs.length > 1 ? `<div class="seg vlangs" role="group" aria-label="${T("voices_t")}" title="${T("voices_t")}"><span class="seg-l">🗣️</span>${langs.map((l) =>
+      `<button class="${shownL.includes(l) ? "on" : ""}" data-act="vlang" data-id="${l}" aria-pressed="${shownL.includes(l)}" title="${T("voices_in", l)}">${l.toUpperCase()}</button>`).join("")}</div>` : "";
     this.setHTML(".bank-tools", `
       <div class="search"><ha-icon icon="mdi:magnify"></ha-icon><input type="search" placeholder="${T("search_n", visible.length)}" value="${esc(ui.filter)}" data-act="filter" aria-label="${T("search")}"></div>
       <div class="seg" role="group" aria-label="${T("tap_does")}">${[["queue", "mdi:playlist-plus", T("mode_play"), T("mode_play_t")], ["preview", "mdi:headphones", T("mode_preview"), T("mode_preview_t")]]
         .map(([k, ic, l, tt]) => `<button class="${ui.tapMode === k ? "on" : ""}" data-act="mode" data-mode="${k}" title="${tt}"><ha-icon icon="${ic}"></ha-icon> ${l}</button>`).join("")}</div>
+      ${langSeg}
       ${this.config.guest || !hiddenN ? "" : `<label class="tog sm" title="${T("show_hidden_t")}">
         <input type="checkbox" data-act="showhidden" ${showHidden ? "checked" : ""}> ${T("show_hidden")} <small class="muted">${hiddenN}${downN ? ` · ${downN} 👎` : ""}</small></label>`}`);
     if (ui.category === "fav" && !favN) ui.category = "all";
+    // a category remembered from another theme, or emptied by the language choice
+    if (ui.category !== "all" && ui.category !== "fav" && !counts[ui.category]) ui.category = "all";
     this.setHTML(".cats", [`<button class="chip cat ${ui.category === "all" ? "on" : ""}" data-act="cat" data-id="all">${T("all_c")} <small>${visible.length}</small></button>`]
       .concat(favN ? [`<button class="chip cat fav-chip ${ui.category === "fav" ? "on" : ""}" data-act="cat" data-id="fav"><ha-icon icon="mdi:heart"></ha-icon> ${T("favorites")} <small>${favN}</small></button>`] : [])
       .concat(catIds.filter((c) => counts[c]).map((c) => `<button class="chip cat ${ui.category === c ? "on" : ""}" data-act="cat" data-id="${esc(c)}">
@@ -891,6 +1014,7 @@ class SoundboardCard extends HTMLElement {
     const tile = (s) => `<div class="tile ${this.markClass(s.id)} ${cur?.id === s.id ? "now" : ""}" role="button" tabindex="0" data-act="sound" data-id="${esc(s.id)}"
         style="--i:${Math.min(k++, 40)}" title="${esc(s.description || ttl(s))}${s.source_url ? `\n${s.source_url}` : ""}">
         ${qn[s.id] ? `<span class="t-q" title="${T("queued")}">${qn[s.id]}</span>` : ""}
+        ${s.lang && shownL.length > 1 ? `<span class="t-lang" title="${T("voices_in", s.lang)}">${esc(s.lang.toUpperCase())}</span>` : ""}
         <span class="t-e">${cats[s.category]?.emoji || CAT_EMOJI[s.category] || "🎵"}</span>
         <span class="t-n">${esc(ttl(s))}</span>${this.icons(s.id, fmtDur(s.duration), true)}</div>`;
     if (byCat) {
@@ -1022,6 +1146,15 @@ class SoundboardCard extends HTMLElement {
         break;
       }
       case "aimx": this.ui.aim = null; this.update(); break;
+      case "scene": {
+        const sc = (SB.lib?.scenes || []).find((x) => x.id === b.dataset.id);
+        if (!sc) break;
+        if (!st.settings.sfx.speakers.length) { this.toast(T("tick_first")); break; }
+        SB.unlock();
+        b.classList.remove("flash"); void b.offsetWidth; b.classList.add("flash");
+        SB.ws({ type: "soundboard/queue", action: "add", items: this.sceneItems(sc).slice(0, 50) });
+        break;
+      }
       case "papply": this.applyPreset(b.dataset.id); break;
       case "psave": {
         const name = (prompt(T("preset_name")) || "").trim().slice(0, 40);
@@ -1053,6 +1186,12 @@ class SoundboardCard extends HTMLElement {
       case "qrm": SB.ws({ type: "soundboard/queue", action: "remove", uid: b.dataset.uid }); break;
       case "mode": this.ui.tapMode = b.dataset.mode; this.update(); break;
       case "cat": this.ui.category = b.dataset.id; LS("category", this.ui.category); this.update(); break;
+      case "vlang": {
+        const shown = SB.shownLangs(), l = b.dataset.id;
+        const next = shown.includes(l) ? shown.filter((x) => x !== l) : SB.voiceLangs().filter((x) => x === l || shown.includes(x));
+        if (next.length) SB.patch({ voice_langs: next.length === SB.voiceLangs().length ? [] : next });
+        break;
+      }
       case "sound": this.onSound(b); break;
       case "fav": case "down": e.preventDefault(); SB.toggleMark(b.dataset.id, a); break;
       case "eye": e.preventDefault(); SB.toggleHidden(b.dataset.id); break;
@@ -1073,7 +1212,7 @@ class SoundboardCard extends HTMLElement {
     if (!data) return;
     const a = document.createElement("a");
     a.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 1)], { type: "application/json" }));
-    a.download = `soundboard-${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = `soundboard-${SB.libTheme}-${new Date().toISOString().slice(0, 10)}.json`;
     a.click();
     setTimeout(() => URL.revokeObjectURL(a.href), 5000);
   }
@@ -1150,20 +1289,23 @@ class SoundboardCard extends HTMLElement {
   }
 }
 
-// Always dark, whatever the HA theme: a night scene, candle-lit. Fonts: Pirata One (display) and
-// Bricolage Grotesque (text), both SIL OFL, served next to this file (see FONT_CSS).
+// Always dark, whatever the HA theme. Text font: Bricolage Grotesque; each look brings its display
+// font (night: Pirata One, winter: Berkshire Swash), all SIL OFL, served from www/fonts/ (see LOOKS).
 const STYLE = `
-:host { --sb-accent:#ff7518; --sb-accent2:#9b59ff; --ink:#0c0a11; --panel:rgba(26,20,36,.74); --line:rgba(241,232,214,.10);
-  --bone:#f1e8d6; --mute:rgba(241,232,214,.62); --ecto:#8dffa6; --blood:#d7263d; --sb-sticky-top:var(--header-height, 0px);
-  --display:"SB Display", "Pirata One", Georgia, serif; --text:"SB Body", "Bricolage Grotesque", ui-rounded, "Segoe UI", sans-serif;
+/* palette slots: the night look's values here, other looks override them below */
+:host { --sb-accent:#ff7518; --sb-accent2:#9b59ff; --ink:#0c0a11; --ink-top:#120e19; --panel:rgba(26,20,36,.74); --line:rgba(241,232,214,.10);
+  --fg:#f1e8d6; --mute:rgba(241,232,214,.62); --live:#8dffa6; --danger:#d7263d; --title:#ffe9c7; --on-accent:#1a0f00;
+  --accent-hi:color-mix(in srgb, var(--sb-accent) 85%, #ffd27a); --tile-ink:#15111c; --bar-bg:rgba(12,10,17,.86); --card-bg:#18121f;
+  --sb-sticky-top:var(--header-height, 0px);
+  --display:"SB Night", Georgia, serif; --text:"SB Body", "Bricolage Grotesque", ui-rounded, "Segoe UI", sans-serif;
   display:block; }
 * { box-sizing:border-box; }
 .wrap { position:relative; isolation:isolate; max-width:1240px; margin:0 auto; padding:14px; display:flex; flex-direction:column; gap:14px;
-  color:var(--bone); font-family:var(--text); color-scheme:dark; border-radius:24px;
+  color:var(--fg); font-family:var(--text); color-scheme:dark; border-radius:24px;
   background:
     radial-gradient(900px 420px at 88% -8%, color-mix(in srgb, var(--sb-accent2) 26%, transparent), transparent 70%),
     radial-gradient(700px 380px at -10% 108%, color-mix(in srgb, var(--sb-accent) 16%, transparent), transparent 70%),
-    linear-gradient(180deg, #120e19, var(--ink) 40%); }
+    linear-gradient(180deg, var(--ink-top), var(--ink) 40%); }
 .wrap.standalone { border-radius:0; min-height:100vh; --sb-sticky-top:0px; }
 .fog { position:absolute; inset:0; z-index:-1; border-radius:inherit; pointer-events:none; opacity:.9;
   background:
@@ -1212,35 +1354,35 @@ ha-icon { --mdc-icon-size:18px; }
 .brand { display:flex; align-items:center; gap:14px; margin-right:auto; }
 .brand .emoji { font-size:46px; line-height:1; filter:drop-shadow(0 0 18px color-mix(in srgb, var(--sb-accent) 70%, transparent)); animation:bob 5s ease-in-out infinite; }
 @keyframes bob { 50% { transform:translateY(-4px) rotate(-4deg); } }
-.title { font-family:var(--display); font-size:46px; line-height:.95; letter-spacing:.01em; color:#ffe9c7;
+.title { font-family:var(--display); font-size:46px; line-height:.95; letter-spacing:.01em; color:var(--title);
   text-shadow:0 0 18px color-mix(in srgb, var(--sb-accent) 65%, transparent), 0 2px 0 #000; animation:candle 4s infinite; }
 @keyframes candle { 0%,100% { opacity:1; } 42% { opacity:.93; } 44% { opacity:1; } 71% { opacity:.96; } }
 .subtitle { font-size:12px; color:var(--mute); letter-spacing:.22em; text-transform:uppercase; margin-top:6px; }
 .themes { display:flex; gap:6px; flex-wrap:wrap; }
 .bar { position:sticky; top:var(--sb-sticky-top); z-index:5; display:grid; grid-template-columns:1fr 1fr auto; gap:8px; padding:8px;
-  border-radius:20px; border:1px solid var(--line); background:rgba(12,10,17,.86); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
+  border-radius:20px; border:1px solid var(--line); background:var(--bar-bg); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
   box-shadow:0 12px 30px -18px #000; }
 .tab { border:1px solid var(--line); background:rgba(255,255,255,.035); border-radius:14px; padding:8px 6px; display:flex; flex-direction:column; align-items:center; gap:1px; min-width:0; transition:background .2s, border-color .2s, box-shadow .2s; }
 .tab-l { font-weight:750; font-size:15px; white-space:nowrap; }
 .tab-sub { font-size:11.5px; color:var(--mute); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; }
 .tab.on { border-color:var(--sb-accent); background:linear-gradient(180deg, color-mix(in srgb, var(--sb-accent) 26%, transparent), color-mix(in srgb, var(--sb-accent) 8%, transparent));
   box-shadow:0 0 22px -8px var(--sb-accent), inset 0 1px 0 rgba(255,255,255,.12); }
-.tab.on .tab-sub { color:var(--bone); }
+.tab.on .tab-sub { color:var(--fg); }
 .stopall { border:0; border-radius:14px; padding:0 16px; font-weight:800; letter-spacing:.05em; text-transform:uppercase; font-size:13px;
   background:linear-gradient(180deg, #e63950, #a3162a); color:#fff; display:flex; gap:6px; align-items:center; justify-content:center;
-  box-shadow:0 6px 18px -8px var(--blood), inset 0 1px 0 rgba(255,255,255,.25); }
+  box-shadow:0 6px 18px -8px var(--danger), inset 0 1px 0 rgba(255,255,255,.25); }
 .stopall.live { animation:throb 1.6s ease-in-out infinite; }
-@keyframes throb { 50% { box-shadow:0 0 0 4px color-mix(in srgb, var(--blood) 35%, transparent), 0 6px 18px -8px var(--blood); } }
+@keyframes throb { 50% { box-shadow:0 0 0 4px color-mix(in srgb, var(--danger) 35%, transparent), 0 6px 18px -8px var(--danger); } }
 .stopall:active { transform:scale(.96); }
 /* floats over the page: it disappears on the first tap, and a banner in the flow would shift
    everything under the finger between pointerdown and click, so that tap would miss its button */
 .lock { position:fixed; z-index:20; left:50%; bottom:max(16px, env(safe-area-inset-bottom)); transform:translateX(-50%); width:min(calc(100% - 32px), 520px);
-  padding:14px; border-radius:16px; background:linear-gradient(90deg, var(--sb-accent), color-mix(in srgb, var(--sb-accent) 70%, #ffd27a)); color:#1a0f00;
+  padding:14px; border-radius:16px; background:linear-gradient(90deg, var(--sb-accent), color-mix(in srgb, var(--sb-accent) 70%, #ffd27a)); color:var(--on-accent);
   font-weight:700; text-align:center; cursor:pointer; box-shadow:0 10px 40px -8px #000, 0 0 30px -10px var(--sb-accent); animation:rise .4s both; }
 .sec { background:var(--panel); border-radius:22px; border:1px solid var(--line); box-shadow:0 20px 40px -30px #000, inset 0 1px 0 rgba(255,255,255,.04); }
 .sec.off-tab { display:none; }
-.sec-h { margin:0; padding:14px 16px 10px; font-family:var(--display); font-weight:400; font-size:28px; line-height:1; letter-spacing:.01em; display:flex; align-items:center; gap:10px; cursor:pointer; user-select:none; color:#ffe9c7; }
-.sec-sub { margin-left:auto; font-family:var(--text); font-size:12px; font-weight:600; color:var(--ecto); max-width:50%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.sec-h { margin:0; padding:14px 16px 10px; font-family:var(--display); font-weight:400; font-size:28px; line-height:1; letter-spacing:.01em; display:flex; align-items:center; gap:10px; cursor:pointer; user-select:none; color:var(--title); }
+.sec-sub { margin-left:auto; font-family:var(--text); font-size:12px; font-weight:600; color:var(--live); max-width:50%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .chev { transition:transform .2s; color:var(--mute); }
 .sec.collapsed .chev { transform:rotate(-90deg); }
 .sec.collapsed .sec-b { display:none; }
@@ -1256,9 +1398,9 @@ ha-icon { --mdc-icon-size:18px; }
 .dev-cols .dev-n { flex-wrap:wrap; gap:4px 8px; }
 .chip.warm.sm { padding:3px 9px 3px 6px; font-size:11.5px; font-weight:700; gap:3px; text-transform:none; letter-spacing:0; }
 .chip.warm.sm ha-icon { --mdc-icon-size:14px; }
-.warm.on { background:color-mix(in srgb, var(--ecto) 18%, transparent); border-color:var(--ecto); }
+.warm.on { background:color-mix(in srgb, var(--live) 18%, transparent); border-color:var(--live); }
 .dot { width:8px; height:8px; border-radius:50%; display:inline-block; flex:none; }
-.dot.warm { background:var(--ecto); box-shadow:0 0 8px var(--ecto); }
+.dot.warm { background:var(--live); box-shadow:0 0 8px var(--live); }
 .dot.connecting { background:#ffb300; animation:blink 1s infinite; }
 @keyframes blink { 50% { opacity:.2; } }
 .lbl { font-size:11px; text-transform:uppercase; letter-spacing:.14em; color:var(--mute); font-weight:700; }
@@ -1294,7 +1436,7 @@ input[type=range] { accent-color:var(--sb-accent); width:100%; min-width:0; curs
 .link { border:0; background:none; padding:0; color:var(--sb-accent); font-size:12px; text-decoration:underline; text-underline-offset:2px; text-transform:none; letter-spacing:0; }
 .data { display:flex; flex-direction:column; gap:8px; padding-top:4px; }
 .via-b { display:flex; align-items:center; gap:8px; width:100%; border:1px dashed var(--line); border-radius:12px; background:rgba(0,0,0,.18); padding:9px 12px; font-size:13px; text-align:left; color:var(--mute); }
-.via-b span:first-of-type { flex:1; color:var(--bone); }
+.via-b span:first-of-type { flex:1; color:var(--fg); }
 .via-b.warn { border-color:#ffb300; background:color-mix(in srgb, #ffb300 12%, transparent); }
 .row.ctl, .ctl-line { display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
 .row.ctl.fx-ctl { flex-direction:column; align-items:stretch; gap:10px; }
@@ -1310,8 +1452,8 @@ input[type=range] { accent-color:var(--sb-accent); width:100%; min-width:0; curs
 .btn:not(.primary):hover:not(:disabled) { background:rgba(255,255,255,.1); }
 .btn.primary:hover:not(:disabled) { filter:brightness(1.08); }
 .btn.sm { padding:5px 11px; font-size:13px; }
-.btn.primary { background:linear-gradient(180deg, color-mix(in srgb, var(--sb-accent) 85%, #ffd27a), var(--sb-accent)); border-color:transparent; color:#1a0f00; font-weight:800; box-shadow:0 8px 20px -10px var(--sb-accent); }
-.btn.danger { color:#ff8a98; border-color:color-mix(in srgb, var(--blood) 50%, transparent); }
+.btn.primary { background:linear-gradient(180deg, var(--accent-hi), var(--sb-accent)); border-color:transparent; color:var(--on-accent); font-weight:800; box-shadow:0 8px 20px -10px var(--sb-accent); }
+.btn.danger { color:#ff8a98; border-color:color-mix(in srgb, var(--danger) 50%, transparent); }
 .btn:disabled { opacity:.35; cursor:default; box-shadow:none; }
 .btn:not(:disabled):active { transform:scale(.96); }
 .stepper { display:inline-flex; align-items:center; gap:6px; }
@@ -1324,17 +1466,17 @@ input[type=range] { accent-color:var(--sb-accent); width:100%; min-width:0; curs
 .track-w.sel { background:color-mix(in srgb, var(--sb-accent) 9%, transparent); border-color:color-mix(in srgb, var(--sb-accent) 35%, transparent); }
 .track { display:flex; align-items:center; gap:10px; padding:8px 10px; border-radius:12px; cursor:pointer; }
 .track:hover { background:rgba(255,255,255,.04); }
-.track.playing .t-title { color:var(--ecto); }
+.track.playing .t-title { color:var(--live); }
 .t-title { flex:1; font-weight:600; }
 .dur { font-size:12px; color:var(--mute); font-variant-numeric:tabular-nums; }
-.np { display:flex; flex-direction:column; gap:4px; padding:10px 12px; border-radius:14px; background:rgba(0,0,0,.25); border:1px solid color-mix(in srgb, var(--ecto) 25%, transparent); }
+.np { display:flex; flex-direction:column; gap:4px; padding:10px 12px; border-radius:14px; background:rgba(0,0,0,.25); border:1px solid color-mix(in srgb, var(--live) 25%, transparent); }
 .np-row { display:flex; align-items:center; gap:10px; font-weight:700; }
 .np-t { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .bar-p { height:4px; border-radius:2px; background:rgba(255,255,255,.08); overflow:hidden; margin:2px 0 6px; }
-.fill, .q-bar { display:block; height:100%; background:var(--ecto); transform-origin:left; animation-name:prog; animation-timing-function:linear; animation-fill-mode:both; }
+.fill, .q-bar { display:block; height:100%; background:var(--live); transform-origin:left; animation-name:prog; animation-timing-function:linear; animation-fill-mode:both; }
 @keyframes prog { from { transform:scaleX(0); } to { transform:scaleX(1); } }
 .eq { display:inline-flex; gap:2px; align-items:flex-end; height:14px; }
-.eq i { width:3px; background:var(--ecto); animation:eq .9s infinite ease-in-out; border-radius:1px; }
+.eq i { width:3px; background:var(--live); animation:eq .9s infinite ease-in-out; border-radius:1px; }
 .eq i:nth-child(2) { animation-delay:-.3s; } .eq i:nth-child(3) { animation-delay:-.6s; }
 @keyframes eq { 0%,100% { height:4px; } 50% { height:14px; } }
 .queue { min-height:20px; }
@@ -1343,8 +1485,8 @@ input[type=range] { accent-color:var(--sb-accent); width:100%; min-width:0; curs
 .q.done { opacity:.4; }
 .q-spin { width:12px; height:12px; border-radius:50%; border:2px solid color-mix(in srgb, var(--sb-accent) 30%, transparent); border-top-color:var(--sb-accent); animation:sbspin .8s linear infinite; flex:none; }
 @keyframes sbspin { to { transform:rotate(360deg); } }
-.q.error { border-color:var(--blood); }
-.q.cur { border-color:var(--ecto); box-shadow:0 0 14px -4px var(--ecto); }
+.q.error { border-color:var(--danger); }
+.q.cur { border-color:var(--live); box-shadow:0 0 14px -4px var(--live); }
 .q-t { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .q-n { font-size:11px; opacity:.6; }
 .q-x { border:0; background:none; font-size:16px; line-height:1; padding:0 6px; opacity:.6; }
@@ -1354,18 +1496,18 @@ input[type=range] { accent-color:var(--sb-accent); width:100%; min-width:0; curs
 .seg { display:inline-flex; border:1px solid var(--line); border-radius:12px; overflow:hidden; }
 .seg button { border:0; background:rgba(255,255,255,.04); padding:8px 11px; display:inline-flex; gap:5px; align-items:center; font-size:13px; font-weight:600; }
 .seg button + button { border-left:1px solid var(--line); }
-.seg button.on { background:var(--sb-accent); color:#1a0f00; font-weight:800; }
+.seg button.on { background:var(--sb-accent); color:var(--on-accent); font-weight:800; }
 .search { flex:1 1 220px; display:flex; align-items:center; gap:6px; border:1px solid var(--line); border-radius:12px; padding:0 12px; background:rgba(0,0,0,.3); }
 .search:focus-within { border-color:var(--sb-accent); }
 .search ha-icon { color:var(--mute); }
 .search input { flex:1; border:0; background:none; color:inherit; font:inherit; padding:10px 0; outline:none; min-width:0; }
 .cats { display:flex; gap:6px; overflow-x:auto; padding:2px 2px 6px; scrollbar-width:thin; scroll-snap-type:x proximity; -webkit-mask-image:linear-gradient(90deg, #000 92%, transparent); mask-image:linear-gradient(90deg, #000 92%, transparent); }
 .cats .chip { scroll-snap-align:start; }
-.cat-h { font-family:var(--display); font-size:22px; margin:12px 0 8px; color:#ffe9c7; display:flex; align-items:center; gap:8px; }
+.cat-h { font-family:var(--display); font-size:22px; margin:12px 0 8px; color:var(--title); display:flex; align-items:center; gap:8px; }
 .cat-h span { font-size:18px; }
 .tiles { display:grid; grid-template-columns:repeat(auto-fill, minmax(124px, 1fr)); gap:10px; }
 .tile { position:relative; border:1px solid var(--line); border-radius:18px; padding:12px 6px 5px; min-height:108px; cursor:pointer;
-  background:linear-gradient(165deg, rgba(255,255,255,.075), rgba(255,255,255,.015) 60%), color-mix(in srgb, var(--sb-accent2) 7%, #15111c);
+  background:linear-gradient(165deg, rgba(255,255,255,.075), rgba(255,255,255,.015) 60%), color-mix(in srgb, var(--sb-accent2) 7%, var(--tile-ink));
   display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px; text-align:center; user-select:none; touch-action:manipulation;
   transition:transform .14s ease, border-color .2s, box-shadow .25s; }
 /* the tiles rise in once, when the bank first shows; not on every re-render (each queue change re-renders it) */
@@ -1374,17 +1516,17 @@ input[type=range] { accent-color:var(--sb-accent); width:100%; min-width:0; curs
 .tile:hover { border-color:color-mix(in srgb, var(--sb-accent) 70%, transparent); box-shadow:0 14px 28px -16px var(--sb-accent); transform:translateY(-2px); }
 .tile:active { transform:scale(.95); }
 .tile.flash { animation:flash .5s ease-out; }
-@keyframes flash { 0% { box-shadow:0 0 0 0 var(--sb-accent); background:color-mix(in srgb, var(--sb-accent) 40%, #15111c); } 100% { box-shadow:0 0 0 14px transparent; } }
-.tile.now { border-color:var(--ecto); box-shadow:0 0 0 1px var(--ecto), 0 0 28px -6px var(--ecto); }
+@keyframes flash { 0% { box-shadow:0 0 0 0 var(--sb-accent); background:color-mix(in srgb, var(--sb-accent) 40%, var(--tile-ink)); } 100% { box-shadow:0 0 0 14px transparent; } }
+.tile.now { border-color:var(--live); box-shadow:0 0 0 1px var(--live), 0 0 28px -6px var(--live); }
 .tile.now .t-e { animation:haunt .9s ease-in-out infinite; }
 @keyframes haunt { 50% { transform:scale(1.15) rotate(-6deg); } }
-.t-q { position:absolute; top:6px; right:8px; min-width:18px; height:18px; padding:0 5px; border-radius:9px; background:var(--sb-accent); color:#1a0f00; font-size:11px; font-weight:800; display:flex; align-items:center; justify-content:center; }
+.t-q { position:absolute; top:6px; right:8px; min-width:18px; height:18px; padding:0 5px; border-radius:9px; background:var(--sb-accent); color:var(--on-accent); font-size:11px; font-weight:800; display:flex; align-items:center; justify-content:center; }
 .t-e { font-size:32px; line-height:1; filter:drop-shadow(0 6px 10px rgba(0,0,0,.55)); transition:transform .2s; }
 .tile:hover .t-e { transform:scale(1.12) rotate(-6deg); }
 .t-n { font-size:13px; line-height:1.2; font-weight:650; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
 .t-d { font-size:11px; color:var(--mute); }
 .tile.hidden-s, .track.hidden-s { opacity:.45; border-style:dashed; }
-.tile.is-down { border-color:var(--blood); }
+.tile.is-down { border-color:var(--danger); }
 .tile.is-fav { border-color:color-mix(in srgb, #ff4d8d 55%, var(--line)); }
 .t-row { display:flex; align-items:center; justify-content:center; gap:1px; margin-top:2px; }
 .track .t-row { margin:0; }
@@ -1393,7 +1535,7 @@ input[type=range] { accent-color:var(--sb-accent); width:100%; min-width:0; curs
 .ic:hover { opacity:.9; background:rgba(255,255,255,.08); }
 .ic.on { opacity:1; }
 .ic.fav.on { color:#ff4d8d; }
-.ic.down.on { color:var(--blood); }
+.ic.down.on { color:var(--danger); }
 .t-row .t-d { min-width:26px; text-align:center; margin-right:2px; }
 .fav-chip ha-icon { color:#ff4d8d; --mdc-icon-size:16px; }
 .muted { opacity:.6; }
@@ -1434,23 +1576,126 @@ input[type=range] { accent-color:var(--sb-accent); width:100%; min-width:0; curs
 }
 .chips { display:flex; flex-wrap:wrap; gap:6px; align-items:center; }
 .tog.big { font-size:16px; font-weight:800; }
+.scenes:empty { display:none; }
+.scenes-in { display:flex; flex-direction:column; gap:8px; }
+.scenes-in .chips { display:grid; grid-template-columns:repeat(auto-fill, minmax(170px, 1fr)); gap:8px; }
+.chip.scene { padding:9px 12px; font-weight:700; white-space:normal; text-align:left; line-height:1.2; border-radius:14px; border-color:color-mix(in srgb, var(--sb-accent2) 55%, transparent);
+  background:linear-gradient(180deg, color-mix(in srgb, var(--sb-accent2) 22%, transparent), color-mix(in srgb, var(--sb-accent2) 8%, transparent)); }
+.chip.scene small { margin-left:auto; padding-left:4px; white-space:nowrap; }
+.chip.scene .sc-e { font-size:17px; line-height:1; }
+.chip.scene.flash { animation:flash .5s ease-out; }
 .haunt-in, .motion { display:flex; flex-direction:column; gap:8px; padding:12px 14px; border-radius:14px; border:1px solid var(--line); background:rgba(0,0,0,.2); transition:border-color .3s, box-shadow .3s; }
-.haunt-in.on, .motion.on { border-color:var(--ecto); box-shadow:0 0 26px -12px var(--ecto); }
-.haunt-in.on .tog.big { color:var(--ecto); }
+.haunt-in.on, .motion.on { border-color:var(--live); box-shadow:0 0 26px -12px var(--live); }
+.haunt-in.on .tog.big { color:var(--live); }
 .h-opts summary { cursor:pointer; font-size:13.5px; font-weight:700; padding:2px 0; }
 .h-opts[open] { display:flex; flex-direction:column; gap:10px; }
 .h-opts .ctl-line { flex-wrap:wrap; }
 .h-opts .gap input { flex:1 1 90px; }
 .aim { position:fixed; inset:0; z-index:30; background:rgba(5,3,8,.62); backdrop-filter:blur(3px); -webkit-backdrop-filter:blur(3px); display:flex; align-items:center; justify-content:center; padding:16px; }
 .aim[hidden] { display:none; }
-.aim-card { width:min(100%, 540px); background:#18121f; border:1px solid var(--line); border-radius:20px; padding:18px; display:flex; flex-direction:column; gap:12px; box-shadow:0 30px 80px -20px #000, 0 0 40px -20px var(--sb-accent); animation:rise .25s both; }
-.aim-h { font-family:var(--display); font-size:26px; color:#ffe9c7; line-height:1.1; }
+.aim-card { width:min(100%, 540px); background:var(--card-bg); border:1px solid var(--line); border-radius:20px; padding:18px; display:flex; flex-direction:column; gap:12px; box-shadow:0 30px 80px -20px #000, 0 0 40px -20px var(--sb-accent); animation:rise .25s both; }
+.aim-h { font-family:var(--display); font-size:26px; color:var(--title); line-height:1.1; }
 .ic.aim-b { color:var(--sb-accent); }
 .langs { display:flex; gap:4px; }
 .chip.lang { padding:5px 10px; font-weight:800; font-size:12px; }
 .offline { align-self:flex-start; }
-.offline.done { border-color:var(--ecto); color:var(--ecto); }
+.offline.done { border-color:var(--live); color:var(--live); }
 .aim-g { display:flex; flex-direction:column; gap:6px; }
+.seg-l { display:inline-flex; align-items:center; padding:0 4px 0 9px; font-size:14px; }
+.vlangs button { padding:8px 10px; font-weight:800; font-size:12px; letter-spacing:.04em; }
+.t-lang { position:absolute; top:6px; left:8px; padding:1px 5px; border-radius:6px; font-size:9.5px; font-weight:800; letter-spacing:.05em;
+  color:var(--mute); border:1px solid var(--line); background:rgba(0,0,0,.25); }
+/* the look's scene: its children are laid out as if they were the .wrap's own */
+.backdrop { display:contents; }
+
+/* ---------- winter look: snowfall, stars, a string of lights, the sleigh, Saint Nicholas ---------- */
+:host([data-look="winter"]) { --ink:#06101b; --ink-top:#0d2236; --panel:rgba(12,26,41,.84); --line:rgba(225,238,255,.11);
+  --fg:#f2f6fb; --mute:rgba(222,234,248,.64); --live:#ffd76e; --title:#fff1d6; --on-accent:#fff;
+  --accent-hi:color-mix(in srgb, var(--sb-accent) 80%, #ff9d8a); --tile-ink:#0d1a29; --bar-bg:rgba(6,16,27,.86); --card-bg:#0f1d2d;
+  --display:"SB Winter", Georgia, serif; }
+:host([data-look="winter"]) .wrap { padding-top:30px; }
+:host([data-look="winter"]) .title { letter-spacing:0; text-shadow:0 0 22px color-mix(in srgb, var(--sb-accent2) 60%, transparent), 0 2px 0 #000; }
+:host([data-look="winter"]) .sec-h, :host([data-look="winter"]) .cat-h { letter-spacing:0; }
+:host([data-look="winter"]) .tile.now .t-e { animation:ring .7s ease-in-out infinite; transform-origin:50% 10%; }
+@keyframes ring { 0%, 100% { transform:rotate(0); } 25% { transform:rotate(14deg); } 75% { transform:rotate(-14deg); } }
+/* snow: three layers of flakes, each a repeating tile that falls by exactly one tile height and
+   sways; on the public page it covers the screen, in Home Assistant the top of the card */
+.snow { position:absolute; left:0; right:0; top:0; height:min(100%, 1100px); z-index:-1; overflow:hidden; pointer-events:none; border-radius:inherit;
+  -webkit-mask-image:linear-gradient(#000 55%, transparent); mask-image:linear-gradient(#000 55%, transparent); }
+.wrap.standalone .snow { position:fixed; inset:0; height:auto; -webkit-mask-image:none; mask-image:none; }
+.snow i { position:absolute; left:-40px; right:-40px; top:calc(-1 * var(--t)); bottom:0; background-size:var(--t) var(--t);
+  animation:snow var(--d) linear infinite, sway var(--sw) ease-in-out infinite alternate; will-change:transform; }
+.snow .s1 { --t:170px; --d:30s; --sw:7s; opacity:.55;
+  background-image:radial-gradient(circle at 20px 30px, #fff 0 1px, transparent 1.6px), radial-gradient(circle at 95px 80px, #fff 0 1.2px, transparent 1.8px),
+    radial-gradient(circle at 140px 140px, #fff 0 .9px, transparent 1.5px), radial-gradient(circle at 60px 120px, #fff 0 1px, transparent 1.6px); }
+.snow .s2 { --t:260px; --d:21s; --sw:5s; opacity:.75;
+  background-image:radial-gradient(circle at 40px 60px, #fff 0 1.8px, transparent 2.5px), radial-gradient(circle at 190px 30px, #fff 0 1.5px, transparent 2.2px),
+    radial-gradient(circle at 130px 190px, #fff 0 2px, transparent 2.7px); }
+.snow .s3 { --t:420px; --d:14s; --sw:4s; opacity:.8; filter:blur(.6px);
+  background-image:radial-gradient(circle at 70px 110px, #fff 0 2.8px, transparent 3.8px), radial-gradient(circle at 320px 300px, #fff 0 2.4px, transparent 3.4px); }
+@keyframes snow { from { transform:translateY(0); } to { transform:translateY(var(--t)); } }
+@keyframes sway { from { translate:-14px 0; } to { translate:14px 0; } }
+/* the sky band: the moon, stars, the sleigh, Saint Nicholas */
+.sky { position:absolute; left:0; right:0; top:0; height:190px; overflow:hidden; pointer-events:none; z-index:0; border-radius:24px 24px 0 0; }
+.sky .moon { position:absolute; right:22%; top:26px; width:70px; height:70px; border-radius:50%;
+  background:radial-gradient(circle at 38% 36%, #ffffff, #e9f0fb 55%, #bccbe4);
+  box-shadow:0 0 30px 8px rgba(220,232,255,.35), 0 0 90px 34px rgba(255,214,140,.10); opacity:.95; }
+.sky .moon::after { content:""; position:absolute; inset:0; border-radius:50%;
+  background:radial-gradient(circle at 64% 60%, rgba(120,140,180,.28) 0 9%, transparent 10%), radial-gradient(circle at 34% 68%, rgba(120,140,180,.2) 0 6%, transparent 7%); }
+.star { position:absolute; width:3px; height:3px; border-radius:50%; background:#fff; box-shadow:0 0 6px 1px rgba(255,255,255,.8); animation:twinkle var(--k, 3s) ease-in-out infinite; }
+.t1 { left:8%; top:120px; --k:3.4s; } .t2 { left:31%; top:22px; --k:2.6s; animation-delay:-1s; } .t3 { left:46%; top:96px; --k:4s; }
+.t4 { left:58%; top:30px; --k:3s; animation-delay:-2s; } .t5 { left:88%; top:110px; --k:2.2s; } .t6 { left:94%; top:34px; --k:3.6s; animation-delay:-.5s; }
+.t7 { left:70%; top:140px; --k:2.8s; animation-delay:-1.4s; } .t8 { left:18%; top:64px; --k:3.2s; animation-delay:-2.4s; }
+@keyframes twinkle { 50% { opacity:.25; transform:scale(.6); } }
+.sleigh { position:absolute; left:-280px; top:16px; width:210px; animation:sleigh-x 32s linear infinite; animation-delay:-9s; }
+.sleigh .bob { display:block; animation:sleigh-bob 4s ease-in-out infinite alternate; }
+.sleigh svg { display:block; width:100%; overflow:visible; fill:#0b1626; stroke:#0b1626; stroke-width:1.6; stroke-linecap:round;
+  filter:drop-shadow(0 0 2px rgba(255,220,140,.95)) drop-shadow(0 0 9px rgba(255,200,110,.45)); }
+.sleigh path:not(.ant):not(.lf):not(.lb):not(.reins) { stroke:none; }
+.sleigh .reins { fill:none; stroke-width:1; }
+.sleigh .ant { fill:none; stroke-width:1.4; }
+.sleigh .lf, .sleigh .lb, .nicolas .lf, .nicolas .lb { transform-box:fill-box; transform-origin:50% 0; animation:gallop .45s ease-in-out infinite alternate; }
+.sleigh .lb { animation-delay:-.22s; }
+.sleigh .lf, .sleigh .lb { fill:none; stroke-width:1.5; }
+/* a trail of sparkles behind the sleigh */
+.sleigh::before { content:""; position:absolute; right:100%; top:58%; width:150px; height:8px; margin-right:-12px;
+  background:radial-gradient(circle, #ffe6a6 0 1.1px, transparent 1.8px) 0 0 / 11px 8px repeat-x;
+  -webkit-mask-image:linear-gradient(90deg, transparent, #000); mask-image:linear-gradient(90deg, transparent, #000); animation:sparkle .6s steps(3) infinite; }
+@keyframes sparkle { 50% { opacity:.5; } }
+@keyframes sleigh-x { from { left:-280px; } to { left:calc(100% + 80px); } }
+@keyframes sleigh-bob { from { transform:translateY(-6px) rotate(-3deg); } to { transform:translateY(10px) rotate(2deg); } }
+@keyframes gallop { from { transform:rotate(-22deg); } to { transform:rotate(22deg); } }
+/* he walks in from the right, about halfway across the header, and fades into the night */
+.nicolas { position:absolute; right:-120px; top:64px; width:88px; animation:walk-x 64s linear infinite; animation-delay:-14s; }
+.nicolas .step { display:block; animation:step .9s ease-in-out infinite alternate; }
+.nicolas svg { display:block; width:100%; overflow:visible; fill:#0b1626; stroke:#0b1626;
+  filter:drop-shadow(0 0 2px rgba(255,220,140,.9)) drop-shadow(0 0 8px rgba(255,200,110,.35)); }
+.nicolas path:not(.crozier) { stroke:none; }
+.nicolas .crozier { fill:none; stroke-width:2.4; stroke-linecap:round; }
+.nicolas .fruit { fill:#ffa94d; filter:drop-shadow(0 0 3px rgba(255,160,60,.9)); }
+.nicolas .lf, .nicolas .lb { animation-duration:.9s; }
+.nicolas .lb { animation-delay:-.45s; }
+@keyframes walk-x { 0% { right:-120px; opacity:1; } 58% { right:52%; opacity:1; } 64%, 100% { right:56%; opacity:0; } }
+@keyframes step { from { transform:translateY(0); } to { transform:translateY(-2px); } }
+/* a string of lights along the top, each bulb twinkling on its own beat */
+.lights { position:absolute; left:0; right:0; top:0; height:32px; display:flex; overflow:hidden; pointer-events:none; z-index:2; border-radius:24px 24px 0 0; }
+.lights svg { flex:none; width:120px; height:34px; overflow:visible; }
+.lights path { fill:none; stroke:#16301f; stroke-width:1.6; }
+.lights ellipse { animation:bulb 2.6s ease-in-out infinite; }
+.lights svg:nth-child(3n+1) ellipse:nth-of-type(1), .lights svg:nth-child(3n+2) ellipse:nth-of-type(2), .lights svg:nth-child(3n) ellipse:nth-of-type(3) { --c:#ff4d5a; }
+.lights svg:nth-child(3n+1) ellipse:nth-of-type(2), .lights svg:nth-child(3n+2) ellipse:nth-of-type(3), .lights svg:nth-child(3n) ellipse:nth-of-type(1) { --c:#ffd56b; }
+.lights svg:nth-child(3n+1) ellipse:nth-of-type(3), .lights svg:nth-child(3n+2) ellipse:nth-of-type(1), .lights svg:nth-child(3n) ellipse:nth-of-type(2) { --c:#5fd38d; }
+.lights svg:nth-child(4n) ellipse:nth-of-type(2) { --c:#6cc4ff; }
+.lights ellipse { fill:var(--c); filter:drop-shadow(0 0 4px var(--c)) drop-shadow(0 0 10px var(--c)); }
+.lights svg:nth-child(2n) ellipse { animation-delay:-1.3s; } .lights svg:nth-child(3n) ellipse:nth-of-type(2) { animation-delay:-.6s; }
+.lights svg:nth-child(5n) ellipse:nth-of-type(1) { animation-delay:-2s; animation-duration:1.9s; }
+@keyframes bulb { 50% { opacity:.45; } }
+@media (max-width: 520px) {
+  .sleigh { width:160px; top:10px; }
+  .nicolas { width:72px; top:98px; }
+  .sky .moon { right:7%; top:64px; width:54px; height:54px; }
+  :host([data-look="winter"]) .wrap { padding-top:26px; }
+}
 `;
 
 if (!customElements.get("soundboard-card")) {

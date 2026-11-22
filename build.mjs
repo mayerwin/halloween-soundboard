@@ -32,6 +32,8 @@ const walk = (dir) => readdirSync(dir).flatMap((f) => {
 rmSync(DIST, { recursive: true, force: true });
 cpSync(SRC, DIST, { recursive: true });
 const files = walk(DIST);
+// this site's theme, and the cache names it used before they carried it, for the service worker
+const site = JSON.parse(readFileSync(join(SRC, "site.json"), "utf8"));
 
 // sounds: ?v=<hash> in library.json
 const libPath = join(DIST, "library.json");
@@ -77,6 +79,6 @@ const shell = ["./", ...walk(DIST).map((f) => relative(DIST, f).split("\\").join
   .filter((f) => !f.startsWith("sounds/") && f !== "sw.js" && !f.endsWith(".txt") && f !== "og-image.png")];
 const swPath = join(DIST, "sw.js");
 writeFileSync(swPath, readFileSync(swPath, "utf8").replace("__VERSION__", hash(shell.join("\n") + readFileSync(join(DIST, "index.html"))))
-  .replace("__SHELL__", JSON.stringify(shell)));
+  .replace("__SHELL__", JSON.stringify(shell)).replace("__SITE__", site.theme).replace("__LEGACY__", JSON.stringify(site.legacy_caches || {})));
 for (const [a, b] of Object.entries(renamed)) console.log(`${a} -> ${b}`);
 console.log(`dist/ ready: ${walk(DIST).length} files, ${relative(ROOT, DIST)}`);

@@ -4,9 +4,8 @@
 // engine drives the house speakers over a websocket. Here this module answers the same messages
 // (callWS / subscribeMessage, see AGENTS.md "Card <-> engine contract"), with one speaker: the
 // page itself. Everything you change (settings, favourites, hidden sounds, presets, history) is
-// kept in this browser's localStorage.
-
-const STORE = "soundboard.local.v1";
+// kept in this browser's localStorage, under the site's own key (sibling sites share an origin).
+// The theme comes from the library (its id, words, categories); nothing here is theme-specific.
 const HISTORY_MAX = 200;
 const HISTORY_SENT = 60;
 const PRESETS_MAX = 30;
@@ -14,7 +13,9 @@ const MAX_QUEUE = 150;
 const DEFAULT_LEVEL = 1;
 
 const DEFAULTS = {
-  theme: "halloween",
+  theme: "",
+  // spoken sounds shown, by language; null = the page's language, [] = all
+  voice_langs: null,
   music: { tracks: [], volume: 0.6, loop: true, mix: false, levels: {} },
   sfx: { volume: 0.8, gap: 0, loop: false, autoplay: true, pause_s: 5 },
   haunt: { on: false, min_s: 20, max_s: 90, cats: [], favs: false },
@@ -25,11 +26,13 @@ const WORDS = {
   en: { you: "You", undid: (t) => `Undid: ${t}`, hid: "Hid", unhid: "Unhid", fav: "Favourited", unfav: "Unfavourited",
     disliked: "Disliked", undisliked: "Un-disliked", mix: (on) => `Background mixing ${on ? "on" : "off"}`,
     started: (mix, t) => `Started background${mix ? " mix" : ""}: ${t}`, stopped: "Stopped background", cleared: "Cleared the effects queue",
-    saved: (n) => `Saved preset “${n}”`, deleted: (n) => `Deleted preset “${n}”`, haunt: (on) => `Haunt mode ${on ? "on" : "off"}`, stop_all: "STOP ALL" },
+    saved: (n) => `Saved preset “${n}”`, deleted: (n) => `Deleted preset “${n}”`, haunt: (on, m) => `${m} ${on ? "on" : "off"}`, stop_all: "STOP ALL",
+    mode: "Random mode" },
   fr: { you: "Vous", undid: (t) => `Annulé : ${t}`, hid: "Masqué", unhid: "Affiché", fav: "Favori", unfav: "Retiré des favoris",
     disliked: "Pas aimé", undisliked: "Plus « pas aimé »", mix: (on) => `Mélange d'ambiances ${on ? "activé" : "désactivé"}`,
     started: (mix, t) => `Ambiance lancée${mix ? " (mélange)" : ""} : ${t}`, stopped: "Ambiance arrêtée", cleared: "File d'effets vidée",
-    saved: (n) => `Préréglage « ${n} » enregistré`, deleted: (n) => `Préréglage « ${n} » supprimé`, haunt: (on) => `Mode hanté ${on ? "activé" : "désactivé"}`, stop_all: "TOUT ARRÊTER" },
+    saved: (n) => `Préréglage « ${n} » enregistré`, deleted: (n) => `Préréglage « ${n} » supprimé`, haunt: (on, m) => `${m} ${on ? "activé" : "désactivé"}`, stop_all: "TOUT ARRÊTER",
+    mode: "Mode aléatoire" },
 };
 
 // slider position -> amplitude: squared, so 50 % sounds about half as loud (same as the HA engine)
@@ -47,9 +50,13 @@ const merge = (dst, src) => {
 };
 
 export class LocalSoundboard {
-  constructor(library, lang = "en") {
+  // store: the localStorage key (one per site: sibling sites on one origin must not share it).
+  // Its content is keyed by theme where it matters (hidden, marks, presets), so a site with
+  // several themes could keep them all under one key.
+  constructor(library, lang = "en", { store = "soundboard.local.v1" } = {}) {
     this.lang = lang === "fr" ? "fr" : "en";
-    this.lib = library; // theme dict: {id, name, emoji, accent, accent2, categories, sfx: [...], music: [...]}
+    this.store = store;
+    this.lib = library; // theme dict: {id, name, emoji, accent, accent2, look, words, categories, sfx: [...], music: [...]}
     this.items = new Map([...library.sfx, ...library.music].map((i) => [i.id, i]));
     this.subs = new Set();
     this.deviceId = null;
@@ -71,7 +78,7 @@ export class LocalSoundboard {
   // ----- persistence -----
   load() {
     let saved = {};
-    try { saved = JSON.parse(localStorage.getItem(STORE)) || {}; } catch (e) { /* private mode, corrupt */ }
+    try { saved = JSON.parse(localStorage.getItem(this.store)) || {}; } catch (e) { /* private mode, corrupt */ }
     return this.normalise(saved);
   }
 
@@ -83,20 +90,31 @@ export class LocalSoundboard {
       presets: Array.isArray(saved.presets) ? saved.presets.slice(-PRESETS_MAX) : [],
       history: Array.isArray(saved.history) ? saved.history.slice(-HISTORY_MAX) : [],
     };
-    d.settings.theme = this.lib.id;
-    d.settings.haunt.on = false; // a reloaded page can't play before a tap anyway
+    const s = d.settings;
+    s.theme = this.lib.id;
+    s.haunt.on = false; // a reloaded page can't play before a tap anyway
+    // what no longer exists in the library (a sound removed since) is forgotten
+    s.music.tracks = (s.music.tracks || []).filter((t) => this.items.get(t)?.kind === "music");
+    s.music.levels = Object.fromEntries(Object.entries(s.music.levels || {}).filter(([t]) => this.items.has(t)));
+    const cats = new Set(this.lib.sfx.map((i) => i.category));
+    s.haunt.cats = (s.haunt.cats || []).filter((c) => cats.has(c));
+    if (s.voice_langs != null && !Array.isArray(s.voice_langs)) s.voice_langs = null;
     return d;
   }
 
   save() {
     clearTimeout(this._saveT);
     this._saveT = setTimeout(() => {
-      try { localStorage.setItem(STORE, JSON.stringify(this.data)); } catch (e) { /* storage full / blocked */ }
+      try { localStorage.setItem(this.store, JSON.stringify(this.data)); } catch (e) { /* storage full / blocked */ }
     }, 300);
   }
 
   get s() { return this.data.settings; }
   w(k, ...a) { const v = WORDS[this.lang][k]; return typeof v === "function" ? v(...a) : v; }
+  // the random mode's name in this theme ("Haunt mode"), for the history
+  modeName() { return this.lib.words?.[this.lang]?.haunt || this.lib.words?.en?.haunt || this.w("mode"); }
+  // spoken sounds in these languages are shown and picked; unset = the page's language
+  voiceLangs() { return this.s.voice_langs ?? [this.lang]; }
   get me() { return "browser:" + this.deviceId; }
 
   // ----- the hass-like surface the card uses -----
@@ -129,7 +147,7 @@ export class LocalSoundboard {
       if (this.s.haunt.on) { this.s.haunt.on = false; this.hauntStop(); this.save(); }
       this.log(this.w("stop_all")); return null;
     }
-    if (t === "soundboard/lang") { this.lang = msg.lang === "fr" ? "fr" : "en"; return null; }
+    if (t === "soundboard/lang") { this.lang = msg.lang === "fr" ? "fr" : "en"; this.notify(); return null; }
     if (t === "soundboard/warm") return null; // no house speakers to keep connected here
     throw new Error(`unknown command ${t}`);
   }
@@ -149,6 +167,7 @@ export class LocalSoundboard {
 
   stateMsg() {
     const s = clone(this.s);
+    s.voice_langs = this.voiceLangs();
     s.music.speakers = this.deviceId ? [this.me] : [];
     s.sfx.speakers = this.deviceId ? [this.me] : [];
     s.trim = {};
@@ -172,7 +191,8 @@ export class LocalSoundboard {
         history: clone(this.data.history.slice(-HISTORY_SENT)),
         warm: false,
         outputs: this.deviceId ? [{ id: this.me, name: "This device", group: "outdoor", kind: "browser", available: true, ready: "ok" }] : [],
-        themes: [{ id: this.lib.id, name: this.lib.name, emoji: this.lib.emoji, accent: this.lib.accent, accent2: this.lib.accent2, order: 1 }],
+        themes: [{ id: this.lib.id, name: this.lib.name, name_fr: this.lib.name_fr, emoji: this.lib.emoji, accent: this.lib.accent,
+          accent2: this.lib.accent2, look: this.lib.look, order: 1 }],
         music: { playing: this.mPlaying, mix: this.mMix, theme: this.lib.id, layers },
         queue: {
           running: !!this.qRun,
@@ -258,6 +278,7 @@ export class LocalSoundboard {
       if (p.music.tracks) p.music.tracks = p.music.tracks.filter((t) => this.items.get(t)?.kind === "music");
       if (p.music.levels) for (const k in p.music.levels) p.music.levels[k] = clamp(p.music.levels[k], 0, 1.5);
     }
+    if ("voice_langs" in p) p.voice_langs = Array.isArray(p.voice_langs) ? p.voice_langs.filter((l) => l === "en" || l === "fr") : null;
     if (p.haunt) {
       for (const k of ["min_s", "max_s"]) if (k in p.haunt) p.haunt[k] = clamp(p.haunt[k], 5, 1800);
       if (p.haunt.cats) p.haunt.cats = p.haunt.cats.filter((c) => typeof c === "string").slice(0, 60);
@@ -282,7 +303,7 @@ export class LocalSoundboard {
       this.send({ cmd: "sfx_volume", volume: taper(s.sfx.volume) * (this.items.get(this.qCurrent.id)?.gain || 1) });
     }
     if (p.haunt && "on" in p.haunt) {
-      this.log(this.w("haunt", p.haunt.on));
+      this.log(this.w("haunt", p.haunt.on, this.modeName()));
       if (p.haunt.on) this.hauntStart(); else this.hauntStop();
     }
     this.notify();
@@ -515,9 +536,12 @@ export class LocalSoundboard {
 
   pick() {
     const h = this.s.haunt, theme = this.lib.id;
-    const cats = new Set(h.cats || []);
+    // categories of this theme only (a list saved under another one would match nothing)
+    const cats = new Set((h.cats || []).filter((c) => this.lib.sfx.some((i) => i.category === c)));
+    const langs = this.voiceLangs();
     const hidden = this.data.hidden[theme] || {}, marks = this.data.marks[theme] || {};
     const pool = this.lib.sfx.filter((i) => i.duration <= 30 && !(i.id in hidden ? hidden[i.id] : i.default_hidden)
+      && (!i.lang || !langs.length || langs.includes(i.lang))
       && (!cats.size || cats.has(i.category)) && (!h.favs || marks[i.id]?.fav));
     this.recent ||= [];
     const fresh = pool.filter((i) => !this.recent.includes(i.id));
@@ -551,10 +575,11 @@ export class LocalSoundboard {
 
   // ----- export / import / reset (the card's "Your data") -----
   dataOp(msg) {
-    if (msg.action === "export") return { app: "halloween-soundboard", format: 1, exported: new Date().toISOString(), ...clone(this.data) };
+    // "halloween-soundboard": what exports said before the soundboard had more than one theme
+    if (msg.action === "export") return { app: "soundboard", theme: this.lib.id, format: 1, exported: new Date().toISOString(), ...clone(this.data) };
     if (msg.action === "import") {
       const d = msg.data;
-      if (!isObj(d) || d.app !== "halloween-soundboard") throw new Error("not a soundboard export");
+      if (!isObj(d) || !["soundboard", "halloween-soundboard"].includes(d.app)) throw new Error("not a soundboard export");
       this.queueStop();
       this.musicStop(false);
       this.data = this.normalise(d);
@@ -566,7 +591,7 @@ export class LocalSoundboard {
     } else {
       throw new Error("unknown data action");
     }
-    try { localStorage.setItem(STORE, JSON.stringify(this.data)); } catch (e) { /* blocked */ }
+    try { localStorage.setItem(this.store, JSON.stringify(this.data)); } catch (e) { /* blocked */ }
     this.notify();
     return null;
   }

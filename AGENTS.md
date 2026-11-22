@@ -5,22 +5,30 @@ their own Home Assistant.
 
 ## What this is
 
-A Halloween soundboard published as a static site on GitHub Pages. It is a public export of a
-soundboard that also runs on Home Assistant, where a server-side engine drives many speakers at
-once. Here the only speaker is the page itself.
+The Halloween Soundboard, published as a static site on GitHub Pages. It is one theme of a
+soundboard that has several, each published the same way from the same code:
+[halloween-soundboard](https://github.com/mayerwin/halloween-soundboard) and
+[christmas-soundboard](https://github.com/mayerwin/christmas-soundboard). The same soundboard also
+runs on Home Assistant, where a server-side engine drives many speakers at once and the theme
+chips switch between themes. Here the only speaker is the page itself.
+
+Everything that differs between two themes' sites is data: `src/library.json` (the theme:
+names, colours, look, categories, words, sounds) and `src/site.json` (this site's page words and
+storage key). The code (`src/*.js`, `src/site.css`, `build.mjs`) is identical in every theme's repo.
 
 ## Layout
 
 | Path | What | Origin |
 |---|---|---|
-| `src/soundboard-card.js` | The UI: a vanilla web component (`<soundboard-card>`), no framework; its English and French words (`I18N`, `CAT_FR`) | Copied from the Home Assistant version, byte for byte |
-| `src/soundboard-local.js` | The engine, in the browser: queue, haunt mode, background layers, settings, history, presets, export/import | Hand-written |
-| `src/site.js`, `src/site.css`, `src/index.html` | The page around the card: `<ha-icon>` stand-in, page words (EN/FR), credits dialog, toasts, install button | Hand-written |
-| `src/sw.js`, `src/manifest.webmanifest`, `src/icon-*.png` | Offline app: service worker (shell precache filled in by `build.mjs`, sounds cached on play or all at once) and install metadata | Hand-written |
-| `src/library.json` | The sound list: id, title, category, duration, url, license, author, source | Generated |
+| `src/soundboard-card.js` | The UI: a vanilla web component (`<soundboard-card>`), no framework; its English and French words (`I18N`); the looks (`LOOKS`: the scene drawn behind the card, its palette and display font) | Copied from the Home Assistant version, byte for byte |
+| `src/soundboard-local.js` | The engine, in the browser: queue, random mode, background layers, settings, history, presets, export/import | Shared by every theme |
+| `src/site.js`, `src/site.css`, `src/index.html` | The page around the card: `<ha-icon>` stand-in, page words (EN/FR), credits dialog, toasts, install button | Shared; `index.html` is filled in from the theme's site config |
+| `src/sw.js`, `src/manifest.webmanifest`, `src/icon-*.png` | Offline app: service worker (shell precache filled in by `build.mjs`, sounds cached on play or all at once) and install metadata | `sw.js` shared; the rest per theme |
+| `src/library.json` | The theme and its sounds: id, title, title_fr, category, lang (spoken ones), duration, url, license, author, source | Generated |
+| `src/site.json` | This site's theme id, localStorage key, old cache names, page words | Generated |
 | `src/icons.js` | The Material Design Icons paths the card uses | Generated |
-| `src/sounds/`, `src/fonts/` | Audio files, the two fonts (+ their OFL licenses) | Generated |
-| `build.mjs` | `src/` to `dist/` with content-hashed names (cache busting) | Hand-written |
+| `src/sounds/`, `src/fonts/` | Audio files, the fonts of this theme's look (+ their OFL licenses) | Generated |
+| `build.mjs` | `src/` to `dist/` with content-hashed names (cache busting) | Shared |
 | `CREDITS.md`, the credits in `README.md` | Generated from `library.json` | Generated |
 
 The maintainer regenerates this repo with an export script, which also
@@ -32,30 +40,39 @@ upstream to survive the next export: say so in the PR.
 
 - **No dependencies, no bundler.** Plain ES modules and web components; `build.mjs` only copies and
   renames. Keep it that way: the page must keep working from any static host.
-- **No trackers.** Fonts and icons are served from this site. The only third-party requests are
-  the sounds played from their origin (below). Nothing a visitor does leaves their browser
-  (localStorage key `soundboard.local.v1`).
+- **No trackers, no third-party requests.** Sounds, fonts and icons are all served from this site.
+  Nothing a visitor does leaves their browser
+  (localStorage, under the key in `site.json`).
+- **Sibling sites share an origin** (`mayerwin.github.io`), so they share localStorage and the
+  Cache Storage: each site keeps its data under its own key, its "offline done" flag per theme,
+  and its caches under names that carry its theme (`sb-<theme>-...`); a site never deletes
+  another's caches.
 - **Cache busting is content-based.** Every asset name carries its content hash; sounds carry
   `?v=<hash>`. Never reference an asset by a fixed name from a cached file without going through
   `build.mjs` (it rewrites references by file name, leaves first, and fails on a cycle).
-- **Only redistributable sounds are copied here.** CC0, public domain, CC BY, CC BY-NC (this
-  site is non-commercial), plus the halloweensoundboard.com loops (credited). Sounds whose
-  license forbids redistributing the file (Mixkit) or limits use to personal use (BBC RemArc) are
-  **not copied**: their `url` points at their own server and the browser plays them from there
-  (`gain` evens out their loudness with the rest); the installed app caches them for offline use. Every sound needs `license`, `author` and,
-  when there is one, `source_url`: they feed the credits.
+- **Every sound is a file here, credited.** CC0, public domain, CC BY, CC BY-SA, CC BY-NC (this
+  site is non-commercial), plus credited originals where their author agreed, and Mixkit and BBC
+  Sound Effects sounds under their own licenses. Every sound needs `license`, `author` and, when
+  there is one, `source_url`: they feed the credits. Effects are trimmed of silence and
+  loudness-normalised (EBU R128); `gain` evens out the few that are kept as their originals.
 - **Two languages.** Every word the UI shows goes through `T()` (card) or `P()` (page), with an
-  English and a French entry. Sound titles have a `title_fr`; what a voice says (quoted lines, spoken
-  phrases like "Run!") stays verbatim in both.
+  English and a French entry; a theme can override some of the card's words (`words` in
+  `library.json`). Sound titles have a `title_fr`; what a voice says (quoted lines, spoken
+  phrases like "Run!") stays verbatim in both. A spoken sound carries `lang` (`en` / `fr`), and
+  the 🗣️ EN / FR switch shows the voices in one language or both (`settings.voice_langs`; unset =
+  the page's language here, every language on Home Assistant). Random mode picks only shown ones.
 - **Volume is perceptual.** Sliders map to gain squared (`taper`), so 50 % sounds about half as
   loud. Background tracks in Mix can go to 150 %; the HA engine soft-limits the sum.
 - **Plain words in the UI**, written for the person holding the phone at the door, not for an
-  engineer. Every control has an accessible label. The ambience (fog, lightning, bats) always
-  runs: the owner wants it even with the OS's animation effects turned off.
+  engineer. Every control has an accessible label. The ambience (the look's scene) always runs:
+  the owner wants it even with the OS's animation effects turned off.
 
 To add a sound: put the file under `src/sounds/sfx/<category>/` (or `src/sounds/music/`), add an
-entry to `library.json` with its real `duration` in seconds, `license`, `author` and `source_url`,
-then run `node build.mjs` and check it in `dist/`.
+entry to `library.json` with its real `duration` in seconds, `license`, `author`, `source_url`,
+`title_fr` and, if it speaks, `lang`; then run `node build.mjs` and check it in `dist/`.
+
+To add a theme: a new `library.json` (its `look` can be an existing one, or a new entry in the
+card's `LOOKS` with its scene, palette and font) and a `site.json`; nothing else changes.
 
 ## Card <-> engine contract
 
@@ -69,7 +86,7 @@ calls of a Home Assistant-style connection object, which is what `soundboard-loc
 
 | `type` | Fields | Effect |
 |---|---|---|
-| `soundboard/library` | `theme` | Returns the theme: `{id, name, emoji, accent, accent2, categories, sfx: [item], music: [item]}` |
+| `soundboard/library` | `theme` | Returns the theme: `{id, name, name_fr, emoji, accent, accent2, look, fx_emoji, mode_emoji, words: {en, fr}, categories: {id: {name, name_fr, emoji, order}}, sfx: [item], music: [item]}` |
 | `soundboard/settings` | `patch` | Deep-merges into the settings (shape below) |
 | `soundboard/music` | `action`: play, stop, next, prev | Background |
 | `soundboard/queue` | `action`: add (`items: [{type: "sound", id} or {type: "pause", duration}]`), remove (`uid`), clear, play, replay, stop, skip | Effects queue |
@@ -81,12 +98,15 @@ calls of a Home Assistant-style connection object, which is what `soundboard-loc
 | `soundboard/warm` | `on` | HA only: keep camera / Cast streams open |
 | `soundboard/play_now` | `sound, speakers` | HA only: straight to these speakers, not queued, mixed over what they play |
 | `soundboard/data` | `action`: export, import (`data`), reset | Standalone only |
+| `soundboard/lang` | `lang` | Standalone only: the page's language (history words, default voices) |
 | `auth/sign_path` | `path` | HA signs media URLs; standalone returns the path as is |
 
-Settings: `{theme, music: {tracks, speakers, volume, loop, mix, levels: {track: 0-1.5}},
-sfx: {speakers, volume, gap, loop, autoplay, pause_s}, trim: {speaker: 0-1}}`.
+Settings: `{theme, voice_langs: [en|fr] (empty or null = all), music: {tracks, speakers, volume, loop, mix,
+levels: {track: 0-1.5}}, sfx: {speakers, volume, gap, loop, autoplay, pause_s}, trim: {speaker: 0-1},
+haunt: {on, min_s, max_s, cats, favs}}` (`haunt` is the random mode, whatever the theme calls it).
+Item: `{id, kind, title, title_fr, category, lang?, duration, url, gain?, default_hidden, license, author, source_url}`.
 State: `{settings, hidden, marks, presets, history, warm, outputs: [{id, name, group, kind,
-available, ready}], themes, music: {playing, mix, layers: [{id, track, title, duration, started,
+available, ready}], themes: [{id, name, name_fr, emoji, accent, accent2, look, order}], music: {playing, mix, layers: [{id, track, title, duration, started,
 index, count}]}, queue: {running, items, current, current_started, gap_until}, server_time}`.
 Commands to a device: `sfx {url, volume}`, `sfx_stop`, `sfx_volume {volume}`,
 `music {layer, url, offset, volume, title, loop}`, `music_stop {layer?}`, `music_volume {layers}`.

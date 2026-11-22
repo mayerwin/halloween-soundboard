@@ -1,0 +1,28 @@
+{
+ "theme": "halloween",
+ "store": "soundboard.local.v1",
+ "legacy_caches": {
+  "sounds": [
+   "sounds-v1"
+  ],
+  "app_prefix": "app-"
+ },
+ "words": {
+  "en": {
+   "title": "Halloween Soundboard",
+   "loading": "Summoning the sounds…",
+   "tip": "🔊 Tip: pair your phone with a Bluetooth speaker, hide it in a bush, and tap away (or turn on haunt mode and walk away).",
+   "sounds_by": "Sounds by their creators on Freesound, Orange Free Sounds, halloweensoundboard.com, Mixkit and the BBC Sound Effects archive, used under their licenses. We claim no rights over them.",
+   "fonts": "Fonts: Pirata One and Bricolage Grotesque (SIL OFL). Icons: Material Design Icons (Apache 2.0). Code: MIT.",
+   "load_failed": "The spirits are restless: the soundboard failed to load. Try reloading the page."
+  },
+  "fr": {
+   "title": "Boîte à sons d'Halloween",
+   "loading": "Invocation des sons…",
+   "tip": "🔊 Astuce : reliez votre téléphone à une enceinte Bluetooth, cachez-la dans un buisson et jouez (ou lancez le mode hanté et éloignez-vous).",
+   "sounds_by": "Sons créés par leurs auteurs sur Freesound, Orange Free Sounds, halloweensoundboard.com, Mixkit et les archives BBC Sound Effects, utilisés selon leurs licences. Nous ne revendiquons aucun droit sur eux.",
+   "fonts": "Polices : Pirata One et Bricolage Grotesque (SIL OFL). Icônes : Material Design Icons (Apache 2.0). Code : MIT.",
+   "load_failed": "Les esprits sont agités : la boîte à sons n'a pas pu se charger. Rechargez la page."
+  }
+ }
+}
