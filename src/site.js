@@ -24,7 +24,7 @@ const PAGE = {
     title: "Soundboard", loading: "Loading the sounds…", install: "📲 Install the app",
     full_credits: "Full credits", source: "Source on GitHub", privacy: "Nothing you do here leaves your browser: favourites, hidden sounds and presets are stored on this device only.",
     credits: "Credits", credits_intro: "Every sound below belongs to its author and is used under the license shown. Thank you! We claim no rights over these sounds. Some licenses (CC BY-NC) forbid commercial use.",
-    by: "by", source_l: "source", streamed: "played from its site", background: "Background", unknown: "unknown",
+    by: "by", source_l: "source", streamed: "played from its site", music: "Music", ambience: "Ambiences", unknown: "unknown",
     load_failed: "The soundboard failed to load. Try reloading the page.",
     caching: (d, t) => `Downloading sounds for offline use… ${d}/${t}`, cached: (f) => f ? `Ready offline (${f} sounds could not be saved and need a connection).` : "Ready offline: every sound is saved on this device.",
     no_sw: "Offline mode needs a recent browser (service workers).", update: "A new version is ready: reload to use it.",
@@ -33,7 +33,7 @@ const PAGE = {
     title: "Boîte à sons", loading: "Chargement des sons…", install: "📲 Installer l'appli",
     full_credits: "Tous les crédits", source: "Code source sur GitHub", privacy: "Rien de ce que vous faites ici ne quitte votre navigateur : favoris, sons masqués et préréglages restent sur cet appareil.",
     credits: "Crédits", credits_intro: "Chaque son ci-dessous appartient à son auteur et est utilisé selon la licence indiquée. Merci ! Nous ne revendiquons aucun droit sur ces sons. Certaines licences (CC BY-NC) interdisent l'usage commercial.",
-    by: "par", source_l: "source", streamed: "lu depuis son site", background: "Ambiance", unknown: "inconnu",
+    by: "par", source_l: "source", streamed: "lu depuis son site", music: "Musique", ambience: "Ambiances", unknown: "inconnu",
     load_failed: "La boîte à sons n'a pas pu se charger. Rechargez la page.",
     caching: (d, t) => `Téléchargement des sons pour le mode hors ligne… ${d}/${t}`, cached: (f) => f ? `Prêt hors ligne (${f} sons n'ont pas pu être enregistrés et demandent une connexion).` : "Prêt hors ligne : tous les sons sont enregistrés sur cet appareil.",
     no_sw: "Le mode hors ligne demande un navigateur récent (service workers).", update: "Une nouvelle version est prête : rechargez pour l'utiliser.",
@@ -69,7 +69,7 @@ function applyLang() {
 function credits(lib) {
   const cats = lib.categories || {};
   const catName = (c) => (lang === "fr" && cats[c]?.name_fr) || cats[c]?.name || c;
-  const rows = [...lib.music.map((i) => ({ ...i, cat: P("background") })), ...lib.sfx.map((i) => ({ ...i, cat: catName(i.category) }))];
+  const rows = [...lib.music.map((i) => ({ ...i, cat: P(i.group === "music" ? "music" : "ambience") })), ...lib.sfx.map((i) => ({ ...i, cat: catName(i.category) }))];
   const byCat = new Map();
   for (const r of rows) (byCat.get(r.cat) || byCat.set(r.cat, []).get(r.cat)).push(r);
   document.getElementById("credits-list").innerHTML = [...byCat].map(([cat, list]) => `<h3>${esc(cat)}</h3><ul>${list.map((r) =>

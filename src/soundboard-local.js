@@ -19,7 +19,12 @@ const DEFAULTS = {
   music: { tracks: [], volume: 0.6, loop: true, mix: false, levels: {} },
   sfx: { volume: 0.8, gap: 0, loop: false, autoplay: true, pause_s: 5 },
   haunt: { on: false, min_s: 20, max_s: 90, cats: [], favs: false },
+  // listen with this device's microphone and fade everything out at a noise (themes with "hush")
+  hush: { on: false, sens: 8, hold_s: 10 },
 };
+// in mixing mode, the ticked tracks of the "music" group share one layer and play one after
+// another; every ambience is a layer of its own
+const MUSIC_LAYER = "music";
 
 // the history's words (the card translates everything else)
 const WORDS = {
@@ -27,12 +32,12 @@ const WORDS = {
     disliked: "Disliked", undisliked: "Un-disliked", mix: (on) => `Background mixing ${on ? "on" : "off"}`,
     started: (mix, t) => `Started background${mix ? " mix" : ""}: ${t}`, stopped: "Stopped background", cleared: "Cleared the effects queue",
     saved: (n) => `Saved preset “${n}”`, deleted: (n) => `Deleted preset “${n}”`, haunt: (on, m) => `${m} ${on ? "on" : "off"}`, stop_all: "STOP ALL",
-    mode: "Random mode" },
+    mode: "Random mode", hush: (on) => `Hush at a noise ${on ? "on" : "off"}` },
   fr: { you: "Vous", undid: (t) => `Annulé : ${t}`, hid: "Masqué", unhid: "Affiché", fav: "Favori", unfav: "Retiré des favoris",
-    disliked: "Pas aimé", undisliked: "Plus « pas aimé »", mix: (on) => `Mélange d'ambiances ${on ? "activé" : "désactivé"}`,
-    started: (mix, t) => `Ambiance lancée${mix ? " (mélange)" : ""} : ${t}`, stopped: "Ambiance arrêtée", cleared: "File d'effets vidée",
+    disliked: "Pas aimé", undisliked: "Plus « pas aimé »", mix: (on) => `Mélange ${on ? "activé" : "désactivé"}`,
+    started: (mix, t) => `Fond sonore lancé${mix ? " (mélange)" : ""} : ${t}`, stopped: "Fond sonore arrêté", cleared: "File d'effets vidée",
     saved: (n) => `Préréglage « ${n} » enregistré`, deleted: (n) => `Préréglage « ${n} » supprimé`, haunt: (on, m) => `${m} ${on ? "activé" : "désactivé"}`, stop_all: "TOUT ARRÊTER",
-    mode: "Mode aléatoire" },
+    mode: "Mode aléatoire", hush: (on) => `Silence au moindre bruit ${on ? "activé" : "désactivé"}` },
 };
 
 // slider position -> amplitude: squared, so 50 % sounds about half as loud (same as the HA engine)
@@ -83,8 +88,11 @@ export class LocalSoundboard {
   }
 
   normalise(saved) {
+    const defaults = clone(DEFAULTS);
+    // a theme with music and ambiences starts in mixing mode (a carol over the crackling fire)
+    if (typeof this.lib.mix === "boolean") defaults.music.mix = this.lib.mix;
     const d = {
-      settings: merge(clone(DEFAULTS), isObj(saved.settings) ? saved.settings : {}),
+      settings: merge(defaults, isObj(saved.settings) ? saved.settings : {}),
       hidden: isObj(saved.hidden) ? saved.hidden : {},
       marks: isObj(saved.marks) ? saved.marks : {},
       presets: Array.isArray(saved.presets) ? saved.presets.slice(-PRESETS_MAX) : [],
@@ -93,6 +101,7 @@ export class LocalSoundboard {
     const s = d.settings;
     s.theme = this.lib.id;
     s.haunt.on = false; // a reloaded page can't play before a tap anyway
+    s.hush.on = false; // nor listen: the microphone is opened from a tap
     // what no longer exists in the library (a sound removed since) is forgotten
     s.music.tracks = (s.music.tracks || []).filter((t) => this.items.get(t)?.kind === "music");
     s.music.levels = Object.fromEntries(Object.entries(s.music.levels || {}).filter(([t]) => this.items.has(t)));
@@ -279,6 +288,11 @@ export class LocalSoundboard {
       if (p.music.levels) for (const k in p.music.levels) p.music.levels[k] = clamp(p.music.levels[k], 0, 1.5);
     }
     if ("voice_langs" in p) p.voice_langs = Array.isArray(p.voice_langs) ? p.voice_langs.filter((l) => l === "en" || l === "fr") : null;
+    if (p.hush) {
+      if ("on" in p.hush) p.hush.on = !!p.hush.on && !!this.lib.hush;
+      if ("sens" in p.hush) p.hush.sens = Math.round(clamp(p.hush.sens, 1, 10));
+      if ("hold_s" in p.hush) p.hush.hold_s = Math.round(clamp(p.hush.hold_s, 3, 120));
+    }
     if (p.haunt) {
       for (const k of ["min_s", "max_s"]) if (k in p.haunt) p.haunt[k] = clamp(p.haunt[k], 5, 1800);
       if (p.haunt.cats) p.haunt.cats = p.haunt.cats.filter((c) => typeof c === "string").slice(0, 60);
@@ -288,15 +302,23 @@ export class LocalSoundboard {
       if ("gap" in p.sfx) p.sfx.gap = clamp(p.sfx.gap, 0, 120);
       if ("pause_s" in p.sfx) p.sfx.pause_s = clamp(p.sfx.pause_s, 1, 120);
     }
+    const hushWas = s.hush.on;
     merge(s, p);
     this.save();
+    if (p.hush && "on" in p.hush && p.hush.on !== hushWas) this.log(this.w("hush", p.hush.on));
     const mp = p.music || {};
     if ("mix" in mp && !!mp.mix !== !!before.mix) {
       this.log(this.w("mix", mp.mix));
       if (this.mPlaying) this.musicPlay(false);
     } else if (this.mPlaying) {
       if (this.mMix && mp.tracks) this.mixRetrack();
-      if (this.mMix && mp.levels) for (const [k, v] of Object.entries(mp.levels)) { const la = this.layers.get(k); if (la) la.gain = v; }
+      if (this.mMix && mp.levels) {
+        const ml = this.layers.get(MUSIC_LAYER);
+        for (const [k, v] of Object.entries(mp.levels)) {
+          const la = this.layers.get(k) || (ml?.track === k ? ml : null);
+          if (la) la.gain = v;
+        }
+      }
       if ("volume" in mp || mp.levels) this.send({ cmd: "music_volume", layers: this.gains() });
     }
     if (p.sfx && "volume" in p.sfx && this.qCurrent?.type === "sound") {
@@ -322,14 +344,20 @@ export class LocalSoundboard {
 
   level(track) { return this.s.music.levels[track] ?? DEFAULT_LEVEL; }
 
+  // "music" (a carol) or "ambience" (a fire, the wind); a track that says nothing is an ambience
+  isMusic(track) { return this.items.get(track)?.group === "music"; }
+
   musicPlay(byUser) {
     const tracks = this.s.music.tracks.filter((t) => this.items.has(t));
     if (!tracks.length) return;
     this.musicStop(false);
     this.mMix = !!this.s.music.mix;
     this.mPlaying = true;
-    if (this.mMix) for (const t of tracks) this.layers.set(t, { id: t, playlist: [t], index: 0, gain: this.level(t) });
-    else this.layers.set("main", { id: "main", playlist: tracks, index: 0, gain: 1 });
+    if (this.mMix) {
+      const music = tracks.filter((t) => this.isMusic(t));
+      if (music.length) this.layers.set(MUSIC_LAYER, { id: MUSIC_LAYER, playlist: music, index: 0, gain: this.level(music[0]) });
+      for (const t of tracks) if (!this.isMusic(t)) this.layers.set(t, { id: t, playlist: [t], index: 0, gain: this.level(t) });
+    } else this.layers.set("main", { id: "main", playlist: tracks, index: 0, gain: 1 });
     for (const la of this.layers.values()) this.startLayer(la);
     if (byUser) this.log(this.w("started", this.mMix, this.titles(tracks)));
     this.notify();
@@ -341,9 +369,11 @@ export class LocalSoundboard {
     clearTimeout(la.timer);
     const it = this.items.get(la.track);
     if (!it) { this.removeLayer(la.id); return; }
+    if (la.id === MUSIC_LAYER) la.gain = this.level(la.track); // each piece at its own level
     la.timer = setTimeout(() => this.layerNext(la, 1), Math.max(1, it.duration) * 1000);
+    // a layer of one track loops by itself in the player; a playlist moves on at the end
     this.send({ cmd: "music", layer: la.id, url: it.url, offset: 0, volume: this.gains()[la.id] ?? 1, title: it.title,
-      loop: this.mMix && !!this.s.music.loop });
+      loop: this.mMix && !!this.s.music.loop && la.playlist.length === 1 });
     this.send({ cmd: "music_volume", layers: this.gains() });
   }
 
@@ -360,8 +390,8 @@ export class LocalSoundboard {
   }
 
   musicNext(step) {
-    const la = this.layers.get("main");
-    if (this.mPlaying && !this.mMix && la) this.layerNext(la, step);
+    const la = this.layers.get(this.mMix ? MUSIC_LAYER : "main");
+    if (this.mPlaying && la) this.layerNext(la, step);
   }
 
   removeLayer(lid) {
@@ -374,18 +404,34 @@ export class LocalSoundboard {
     this.notify();
   }
 
-  // mixing: ticking / unticking a track adds / removes its layer live
+  // mixing: ticking / unticking an ambience adds / removes its layer live; ticked music joins
+  // the music layer's playlist (unticking the piece playing moves on to the next ticked one)
   mixRetrack() {
-    const want = this.s.music.tracks.filter((t) => this.items.has(t));
-    for (const lid of [...this.layers.keys()]) if (!want.includes(lid)) this.removeLayer(lid);
+    const ticked = this.s.music.tracks.filter((t) => this.items.has(t));
+    const music = ticked.filter((t) => this.isMusic(t));
+    const amb = ticked.filter((t) => !this.isMusic(t));
+    for (const lid of [...this.layers.keys()]) if (lid !== MUSIC_LAYER && !amb.includes(lid)) this.removeLayer(lid);
+    if (!music.length) this.removeLayer(MUSIC_LAYER);
     if (!this.mPlaying) return;
-    for (const t of want) {
+    const ml = this.layers.get(MUSIC_LAYER);
+    if (ml) {
+      const i = music.indexOf(ml.track);
+      ml.playlist = music;
+      if (i >= 0) ml.index = i;
+      else { ml.index = 0; this.startLayer(ml); }
+    } else if (music.length) {
+      const la = { id: MUSIC_LAYER, playlist: music, index: 0, gain: this.level(music[0]) };
+      this.layers.set(MUSIC_LAYER, la);
+      this.startLayer(la);
+    }
+    for (const t of amb) {
       if (!this.layers.has(t)) {
         const la = { id: t, playlist: [t], index: 0, gain: this.level(t) };
         this.layers.set(t, la);
         this.startLayer(la);
       }
     }
+    this.notify();
   }
 
   musicStop(byUser) {

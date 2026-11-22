@@ -20,11 +20,11 @@ storage key). The code (`src/*.js`, `src/site.css`, `build.mjs`) is identical in
 
 | Path | What | Origin |
 |---|---|---|
-| `src/soundboard-card.js` | The UI: a vanilla web component (`<soundboard-card>`), no framework; its English and French words (`I18N`); the looks (`LOOKS`: the scene drawn behind the card, its palette and display font) | Copied from the Home Assistant version, byte for byte |
+| `src/soundboard-card.js` | The UI: a vanilla web component (`<soundboard-card>`), no framework; its English and French words (`I18N`); the looks (`LOOKS`: the scene drawn behind the card, its palette and display font); the page's own audio output, and the hush (`HushDetector`, below) | Copied from the Home Assistant version, byte for byte |
 | `src/soundboard-local.js` | The engine, in the browser: queue, random mode, background layers, settings, history, presets, export/import | Shared by every theme |
 | `src/site.js`, `src/site.css`, `src/index.html` | The page around the card: `<ha-icon>` stand-in, page words (EN/FR), credits dialog, toasts, install button | Shared; `index.html` is filled in from the theme's site config |
 | `src/sw.js`, `src/manifest.webmanifest`, `src/icon-*.png` | Offline app: service worker (shell precache filled in by `build.mjs`, sounds cached on play or all at once) and install metadata | `sw.js` shared; the rest per theme |
-| `src/library.json` | The theme and its sounds: id, title, title_fr, category, lang (spoken ones), duration, url, license, author, source | Generated |
+| `src/library.json` | The theme and its sounds: id, title, title_fr, category, lang (spoken or sung ones), group (background tracks: `music` or ambience), duration, url, license, author, source; the theme's flags `mix` (start in mixing mode) and `hush` (offer the hush) | Generated |
 | `src/site.json` | This site's theme id, localStorage key, old cache names, page words | Generated |
 | `src/icons.js` | The Material Design Icons paths the card uses | Generated |
 | `src/sounds/`, `src/fonts/` | Audio files, the fonts of this theme's look (+ their OFL licenses) | Generated |
@@ -63,6 +63,24 @@ upstream to survive the next export: say so in the PR.
   the page's language here, every language on Home Assistant). Random mode picks only shown ones.
 - **Volume is perceptual.** Sliders map to gain squared (`taper`), so 50 % sounds about half as
   loud. Background tracks in Mix can go to 150 %; the HA engine soft-limits the sum.
+- **Music and ambiences.** A background track with `group: "music"` (a carol) is listed under
+  Music, any other under Ambiences. In mixing mode the ticked music shares one layer (`music`)
+  and plays one piece after another, at each piece's own level, while every ticked ambience is a
+  layer of its own; without mixing, everything ticked plays one after another. A sung track's
+  `lang` is shown on it; the 🗣️ switch filters effects only.
+- **Hush at the slightest noise** (themes with `hush`, this site only: here the page plays every
+  sound itself, so it knows what it plays). Off by default; nothing of it runs until it is turned
+  on. It opens the microphone raw (no browser echo cancellation, which puts phones in "call" mode;
+  except on iOS, where Safari moves playback to the earpiece without it), measures three bands of
+  the microphone and of the page's own output every 20 ms in an AudioWorklet, and
+  `HushDetector` learns how loud its own sound comes back (over the last 15 s, allowing up to
+  0.8 s of delay for a Bluetooth speaker). A noise is what that can't explain and what stands out
+  of the room's quiet by the sensitivity's margin (8 to 26 dB); every sound then fades out
+  (`this.out`, ~0.3 s) and comes back gently `hold_s` after the last noise. Music `<audio>` is
+  played through Web Audio while it listens, so it can be heard and faded too. The settings tab
+  shows the level, the line and what triggered it, live. Tested with a simulated microphone
+  (speaker delay up to 0.32 s, a reverberant room, a distorting speaker, injected knocks, steps
+  and voices) and on a laptop's own microphone and speakers.
 - **Plain words in the UI**, written for the person holding the phone at the door, not for an
   engineer. Every control has an accessible label. The ambience (the look's scene) always runs:
   the owner wants it even with the OS's animation effects turned off.
@@ -103,8 +121,9 @@ calls of a Home Assistant-style connection object, which is what `soundboard-loc
 
 Settings: `{theme, voice_langs: [en|fr] (empty or null = all), music: {tracks, speakers, volume, loop, mix,
 levels: {track: 0-1.5}}, sfx: {speakers, volume, gap, loop, autoplay, pause_s}, trim: {speaker: 0-1},
-haunt: {on, min_s, max_s, cats, favs}}` (`haunt` is the random mode, whatever the theme calls it).
-Item: `{id, kind, title, title_fr, category, lang?, duration, url, gain?, default_hidden, license, author, source_url}`.
+haunt: {on, min_s, max_s, cats, favs}, hush: {on, sens: 1-10, hold_s}}` (`haunt` is the random mode,
+whatever the theme calls it; `hush` exists here only).
+Item: `{id, kind, title, title_fr, category, lang?, group?, duration, url, gain?, default_hidden, license, author, source_url}`.
 State: `{settings, hidden, marks, presets, history, warm, outputs: [{id, name, group, kind,
 available, ready}], themes: [{id, name, name_fr, emoji, accent, accent2, look, order}], music: {playing, mix, layers: [{id, track, title, duration, started,
 index, count}]}, queue: {running, items, current, current_started, gap_until}, server_time}`.

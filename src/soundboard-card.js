@@ -51,7 +51,7 @@ const I18N = {
     level_t: "100 % = the background volume; up to 150 % to bring a quiet one forward",
     no_tracks: "No background tracks in this theme yet.", tick_tracks: "Tick one or more tracks below.",
     restart: "Restart", play: "Play", stop: "Stop", next_track: "Next track", loop: "Loop", mix: "Mix",
-    mix_t: "Play every ticked track at once, each with its own level. While it plays, tick or untick a track to add or remove it.",
+    mix_t: "Play the ticked tracks together, each at its own level: ticked music plays one piece after another, the ambiences all at once over it. While it plays, tick or untick to add or remove one.",
     n_mixed: (n) => `${n} mixed`, n_tracks: (n) => `${n} tracks`,
     undone: "undone", undo: "Undo", hist_empty: "Nothing yet. Hiding, favourites, marks and playback show up here; hide / favourite / mark can be undone.",
     presets: "Presets", apply: "Apply", save_current: "＋ Save current", save_current_t: "Save what is ticked now (speakers, volumes, background tracks and levels) under a name",
@@ -86,27 +86,42 @@ const I18N = {
     haunt_every: "Every", haunt_to: "to", haunt_from: "Pick from", favs_only: "♥ Favourites only", all_cats: "All categories",
     motion: "🏃 Motion triggers", motion_hint: "When a camera sees a person, it plays a random sound (from the random mode's pool) on that camera's speaker.",
     motion_cool: "At most once per camera every", cameras: "Cameras", all_cams: "all",
-    voices_t: "Voices: which languages to show", voices_in: (l) => `Spoken in ${{ en: "English", fr: "French" }[l] || l}`,
+    voices_t: "Voices: which languages to show", voices_in: (l) => `Spoken in ${LANG_NAME.en[l] || l}`,
     scenes: "🎬 Scenes, one tap", scene_t: (n, d) => `Lines up ${n} sounds (${d}), with their pauses`,
+    tab_settings: "🎚️ Settings", bg_music: "🎶 Music", bg_amb: "🌫️ Ambiences",
+    bg_music_t: "Ticked pieces play one after another", bg_amb_t: "With Mix on, every ticked ambience plays at once, over the music",
+    sung_in: (l) => `Sung in ${LANG_NAME.en[l] || l}`,
+    hush: "Hush at the slightest noise",
+    hush_hint: (n) => `This device listens with its microphone: at a noise, every sound fades out at once and comes back ${n} s after the last one. Its own sounds don't count. Keep this page open: the screen stays on while it listens.`,
+    hush_sens: "Sensitivity", hush_hold: "Quiet for", hush_test: "Test the microphone (30 s)",
+    hush_test_t: "Shows for 30 s what the microphone hears and where the line is. Clap, talk, play a sound: a noise that crosses the line is marked.",
+    hush_starting: "Opening the microphone…", hush_denied: "The microphone is blocked. Allow it for this site in your browser's settings, then try again.",
+    hush_nomic: "No microphone available on this device.", hush_ended: "The microphone stopped (another app took it?). Turn this off and on again.",
+    hush_listen: "👂 Listening", hush_heard_ago: (s) => `last noise ${s} ago`, hush_quiet: (n) => `🤫 Heard a noise: sounds back in ${n} s`,
+    hush_testing: (n) => `Test: ${n} s left. Clap, talk, play a sound: its own sounds stay under the line.`,
+    hush_test_off: "Hush is off: the test only shows what it would do.",
+    hush_l_level: "what it hears", hush_l_line: "the line a noise must cross", hush_l_ours: "its own sounds, as heard", hush_l_heard: "noise heard",
+    hush_ios: "On iPhone and iPad, Safari may play sound quieter or with crackles while the microphone is open (a Safari bug).",
+    hush_l_hushed: "faded out", hush_chart_l: "Microphone level over the last 30 seconds, in dB above the room's quiet",
   },
   fr: {
     sounds_n: (n) => `${n} sons`, soundboard: "Boîte à sons",
     tab_speakers: "🔊 Enceintes", tab_volume: "🎚️ Volume", tab_sounds: "Sons", pick_play: "choisir &amp; jouer", on: "en cours",
     stop_all: "Tout arrêter", stop_all_t: "Tout arrêter, partout (mode aléatoire et déclenchement au mouvement aussi)",
     lock_house: "🔈 Touchez ici pour activer le son sur cet appareil", lock_public: "🔈 Touchez n'importe où pour activer le son",
-    sfx: "Effets sonores", bg: "🎼 Ambiance", hist: "🕯️ Historique",
+    sfx: "Effets sonores", bg: "🎼 Fond sonore", hist: "🕯️ Historique",
     playing: "▶ en cours", queued_n: (n) => `${n} en attente`, mixed_n: (n) => `${n} mélangées`,
     show_hidden: "Voir les masqués", show_hidden_t: "Les masqués incluent ceux marqués pour suppression (pouce en bas)",
-    level_t: "100 % = le volume d'ambiance ; jusqu'à 150 % pour faire ressortir une piste discrète",
-    no_tracks: "Pas encore de pistes d'ambiance dans ce thème.", tick_tracks: "Cochez une ou plusieurs pistes ci-dessous.",
+    level_t: "100 % = le volume du fond sonore ; jusqu'à 150 % pour faire ressortir une piste discrète",
+    no_tracks: "Pas encore de fond sonore dans ce thème.", tick_tracks: "Cochez une ou plusieurs pistes ci-dessous.",
     restart: "Relancer", play: "Jouer", stop: "Arrêter", next_track: "Piste suivante", loop: "Boucle", mix: "Mélange",
-    mix_t: "Joue toutes les pistes cochées en même temps, chacune à son niveau. Pendant la lecture, cochez ou décochez pour ajouter ou retirer une piste.",
+    mix_t: "Joue les pistes cochées ensemble, chacune à son niveau : la musique cochée passe un morceau après l'autre, les ambiances toutes à la fois par-dessus. Pendant la lecture, cochez ou décochez pour en ajouter ou en retirer.",
     n_mixed: (n) => `${n} mélangées`, n_tracks: (n) => `${n} pistes`,
     undone: "annulé", undo: "Annuler", hist_empty: "Rien pour l'instant. Masquages, favoris, marques et lectures apparaissent ici ; masquer / favori / marque peuvent être annulés.",
-    presets: "Préréglages", apply: "Appliquer", save_current: "＋ Enregistrer", save_current_t: "Enregistre ce qui est coché (enceintes, volumes, pistes d'ambiance et niveaux) sous un nom",
+    presets: "Préréglages", apply: "Appliquer", save_current: "＋ Enregistrer", save_current_t: "Enregistre ce qui est coché (enceintes, volumes, fond sonore et niveaux) sous un nom",
     preset_eg: "ex. « Entrée : caméras à 60 % »", delete_preset: (n) => `Supprimer le préréglage ${n}`,
-    background: "Ambiance", effects: "Effets", volume_of: (n) => `Volume ${n}`,
-    hint_public: "Le volume de votre téléphone ou ordinateur fixe le maximum ; ces curseurs équilibrent l'ambiance et les effets.",
+    background: "Fond sonore", effects: "Effets", volume_of: (n) => `Volume ${n}`,
+    hint_public: "Le volume de votre téléphone ou ordinateur fixe le maximum ; ces curseurs équilibrent le fond sonore et les effets.",
     hint_house: "100 % = les enceintes cochées à pleine puissance. Elles sont montées au maximum pendant que la boîte à sons les utilise, les curseurs font le reste, puis elles retrouvent leur volume.",
     your_data: "Vos données", data_hint: "Favoris, sons masqués, préréglages et réglages restent uniquement dans ce navigateur.",
     export: "Exporter", import: "Importer", reset: "Réinitialiser", offline: "Utiliser hors ligne", offline_t: "Télécharge tous les sons pour que la boîte à sons fonctionne sans connexion (installez-la comme une appli depuis le menu du navigateur).",
@@ -128,17 +143,33 @@ const I18N = {
     fav_add: "Favori", fav_rm: "Retirer des favoris", down_rm: "Démarquer (le garder)", down_add_pub: "Je n'aime pas (le masque aussi)", down_add: "Marquer pour suppression (le masque aussi)",
     hide: "Masquer", unhide: "Afficher", aim: "Jouer maintenant sur des enceintes choisies", aim_title: (t) => `Jouer « ${t} » maintenant sur…`,
     aim_hint: "Hors file : il part tout de suite sur ces enceintes, mélangé à ce qu'elles jouent déjà.", play_now: "Jouer maintenant", cancel: "Annuler",
-    preset_name: "Nom du préréglage (ce qui joue où, volumes, pistes d'ambiance) :", preset_del: (n) => `Supprimer le préréglage « ${n} » ?`,
+    preset_name: "Nom du préréglage (ce qui joue où, volumes, fond sonore) :", preset_del: (n) => `Supprimer le préréglage « ${n} » ?`,
     reset_q: "Oublier tous les favoris, sons masqués, préréglages et réglages enregistrés dans ce navigateur ?", reset_done: "Boîte à sons remise à neuf",
     imported: "Importé", import_failed: (e) => `Échec de l'import : ${e}`, tick_first: "Cochez d'abord au moins une enceinte pour les effets (onglet Enceintes)",
     haunt: "Mode aléatoire", haunt_hint: (a, b) => `Un son au hasard toutes les ${a} à ${b} s, tout seul.`, haunt_opts: "Options du mode aléatoire",
     haunt_every: "Toutes les", haunt_to: "à", haunt_from: "Choisir parmi", favs_only: "♥ Favoris seulement", all_cats: "Toutes les catégories",
     motion: "🏃 Déclenchement au mouvement", motion_hint: "Quand une caméra voit quelqu'un, elle joue un son au hasard (parmi ceux du mode aléatoire) sur son haut-parleur.",
     motion_cool: "Au plus une fois par caméra toutes les", cameras: "Caméras", all_cams: "toutes",
-    voices_t: "Voix : quelles langues afficher", voices_in: (l) => `En ${{ en: "anglais", fr: "français" }[l] || l}`,
+    voices_t: "Voix : quelles langues afficher", voices_in: (l) => `En ${LANG_NAME.fr[l] || l}`,
     scenes: "🎬 Scènes, en un geste", scene_t: (n, d) => `Enchaîne ${n} sons (${d}), avec leurs pauses`,
+    tab_settings: "🎚️ Réglages", bg_music: "🎶 Musique", bg_amb: "🌫️ Ambiances",
+    bg_music_t: "Les morceaux cochés passent l'un après l'autre", bg_amb_t: "Avec Mélange, toutes les ambiances cochées jouent ensemble, par-dessus la musique",
+    sung_in: (l) => `Chanté en ${LANG_NAME.fr[l] || l}`,
+    hush: "Silence au moindre bruit",
+    hush_hint: (n) => `L'appareil écoute avec son micro : au moindre bruit, tous les sons s'estompent aussitôt et reviennent ${n} s après le dernier bruit. Ses propres sons ne comptent pas. Gardez la page ouverte : l'écran reste allumé pendant l'écoute.`,
+    hush_sens: "Sensibilité", hush_hold: "Silence pendant", hush_test: "Tester le micro (30 s)",
+    hush_test_t: "Montre pendant 30 s ce qu'entend le micro et où passe la ligne. Tapez dans les mains, parlez, lancez un son : un bruit qui franchit la ligne est marqué.",
+    hush_starting: "Ouverture du micro…", hush_denied: "Le micro est bloqué. Autorisez-le pour ce site dans les réglages du navigateur, puis réessayez.",
+    hush_nomic: "Pas de micro disponible sur cet appareil.", hush_ended: "Le micro s'est arrêté (une autre appli l'a pris ?). Désactivez puis réactivez.",
+    hush_listen: "👂 À l'écoute", hush_heard_ago: (s) => `dernier bruit il y a ${s}`, hush_quiet: (n) => `🤫 Un bruit : les sons reviennent dans ${n} s`,
+    hush_testing: (n) => `Test : encore ${n} s. Tapez dans les mains, parlez, lancez un son : ses propres sons restent sous la ligne.`,
+    hush_test_off: "Le silence est désactivé : le test montre seulement ce qu'il ferait.",
+    hush_l_level: "ce qu'il entend", hush_l_line: "la ligne qu'un bruit doit franchir", hush_l_ours: "ses propres sons, entendus", hush_l_heard: "bruit entendu",
+    hush_ios: "Sur iPhone et iPad, Safari peut jouer le son moins fort ou avec des craquements tant que le micro est ouvert (un bug de Safari).",
+    hush_l_hushed: "sons estompés", hush_chart_l: "Niveau du micro sur les 30 dernières secondes, en dB au-dessus du calme de la pièce",
   },
 };
+const LANG_NAME = { en: { en: "English", fr: "French", de: "German" }, fr: { en: "anglais", fr: "français", de: "allemand" } };
 const CAT_FR = { ambience: "Ambiances", other: "Autres" };
 // config.lang, else the page's choice (public site), else the HA user's language, else the browser's
 let LANG = "en";
@@ -216,6 +247,166 @@ const useLookFont = (name) => {
 };
 
 // ---------------------------------------------------------------------------------------
+// Hush: every sound fades out when this device's microphone hears a noise, and comes back a few
+// seconds after the last one (themes with "hush", public build: there the page itself plays every
+// sound, so it knows what it plays and can tell its own sounds from a noise in the room).
+// The microphone is opened raw: the browser's echo cancellation would put a phone in "call" mode
+// (quieter, duller playback, a Bluetooth speaker switched to its call profile). Except on iOS,
+// where Safari (26.2-27, WebKit bug 326286) moves playback to the earpiece when it is off, and
+// crackles but stays on the loudspeaker when it is on: there it stays on. Instead, every
+// 20 ms, the worklet measures three bands of what the microphone hears and of what the page sends
+// to the speakers; HushDetector learns how loud its own sound comes back and reacts only to what
+// that can't explain. Nothing of it exists while it is off.
+// ---------------------------------------------------------------------------------------
+const HUSH_WORKLET = `class SBHush extends AudioWorkletProcessor {
+  constructor() { super(); this.acc = new Float64Array(6); this.n = 0; this.len = Math.round(sampleRate * 0.02); }
+  process(inputs) {
+    const inp = inputs[0] || [];
+    for (let c = 0; c < 6; c++) {
+      const ch = inp[c];
+      if (!ch) continue;
+      let s = 0;
+      for (let i = 0; i < ch.length; i++) s += ch[i] * ch[i];
+      this.acc[c] += s;
+    }
+    this.n += 128;
+    if (this.n >= this.len) {
+      const f = new Float64Array(7);
+      for (let c = 0; c < 6; c++) f[c] = this.acc[c] / this.n;
+      f[6] = this.n;
+      this.port.postMessage(f);
+      this.acc.fill(0);
+      this.n = 0;
+    }
+    return true;
+  }
+}
+registerProcessor("sb-hush", SBHush);`;
+// band centres (Hz): thumps and footsteps, voices, rustling paper and little bells
+const HUSH_BANDS = [250, 1000, 3500];
+const HUSH = {
+  CAL: 0.8, // s: the first frames give the room's quiet
+  WIN: 0.8, // s: our own sound may come back this late (a Bluetooth speaker: 0.2-0.5 s) ...
+  DECAY: 60, // dB/s: ... then dies away like a room's reverberation
+  C0: 20, // dB: how loud our own sound comes back, until measured (more than any real setup:
+  //          a phone's mic next to its own speaker can hear it louder than it was sent)
+  CWIN: 15, // s of playing kept to measure it: the loudest it came back in that time
+  CMIN: 1.5, // s of it needed before the measure replaces the assumption
+  PLAYING: -70, // dB: a band counts as playing above this output level
+  // the room's quiet: follows a quieter room at once, a steadily louder one (a fan, a heater
+  // starting) by 2 dB/s, noise or not: else a fan would keep everything hushed for good
+  FALL: 0.15, RISE: 2,
+  RESUME: 4, BACKOFF: 4, BACKOFF_MAX: 18, BACKOFF_DECAY: 1 / 30, // s, dB, dB, dB/s (see push)
+};
+const IOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
+// sensitivity 1..10 -> how far above the room's quiet a noise must be (dB): 26 .. 8
+const hushMargin = (sens) => 8 + (10 - sens) * 2;
+const dB = (x) => Math.max(-110, 10 * Math.log10(x + 1e-12));
+const pctl = (arr, q) => { const a = [...arr].sort((x, y) => x - y); return a[Math.min(a.length - 1, Math.floor(q * (a.length - 1)))]; };
+
+class HushDetector {
+  constructor() {
+    this.t = 0;
+    this.dt = 0.02;
+    this.cal = [];
+    this.floor = null; // the room's quiet, per band (dB): a low percentile that follows the room
+    this.recent = []; // our output levels over the last WIN s: [band 0, 1, 2, all]
+    this.env = [-110, -110, -110, -110];
+    // how loud our own sound comes back, per microphone band: from the same band's output (c) and
+    // from the whole output (cx: a small speaker's distortion lands in other bands)
+    this.need = [[], [], []];
+    this.needX = [[], [], []];
+    this.c = [HUSH.C0, HUSH.C0, HUSH.C0];
+    this.cx = [HUSH.C0, HUSH.C0, HUSH.C0];
+    this.backoff = [0, 0, 0];
+    this.prev = [false, false];
+    this.resumeAt = -1e9;
+    this.nextFit = 0;
+  }
+
+  // the sounds just came back (after a hush): a noise in the next seconds may be their own echo
+  resumed() { this.resumeAt = this.t; this.guarded = false; }
+
+  // p: mean power of the three microphone bands, then of the three output bands; dt: frame (s).
+  // Returns null while calibrating, else {trig, level, line, ours} (dB above the room's quiet, in
+  // the band closest to a trigger)
+  push(p, dt, sens) {
+    this.t += dt;
+    this.dt = dt;
+    const m = [dB(p[0]), dB(p[1]), dB(p[2])];
+    const o = [dB(p[3]), dB(p[4]), dB(p[5]), dB(p[3] + p[4] + p[5])];
+    this.recent.push(o);
+    while (this.recent.length > Math.max(1, Math.round(HUSH.WIN / dt))) this.recent.shift();
+    for (let k = 0; k < 4; k++) {
+      let mx = -110;
+      for (const r of this.recent) if (r[k] > mx) mx = r[k];
+      this.env[k] = Math.max(mx, this.env[k] - HUSH.DECAY * dt);
+    }
+    // the room's quiet, from the first frames in which we play nothing (or, if we play all along,
+    // the quietest: it falls to the real quiet as soon as our sound pauses)
+    if (this.t < HUSH.CAL) { this.cal.push([m, this.env[3] < HUSH.PLAYING]); return null; }
+    if (!this.floor) {
+      const quiet = this.cal.filter((x) => x[1]);
+      this.floor = [0, 1, 2].map((b) => (quiet.length >= 10 ? pctl(quiet.map((x) => x[0][b]), 0.3) : Math.min(...this.cal.map((x) => x[0][b]))));
+    }
+    if (this.t >= this.nextFit) { this.fit(); this.nextFit = this.t + 0.5; }
+    const S = hushMargin(sens), Se = Math.max(6, S - 4);
+    const res = [];
+    let best = -1e9, bi = 0;
+    for (let b = 0; b < 3; b++) {
+      this.backoff[b] = Math.max(0, this.backoff[b] - HUSH.BACKOFF_DECAY * dt);
+      const F = this.floor[b];
+      const ours = Math.max(this.env[b] + this.c[b], this.env[3] + this.cx[b]) + this.backoff[b];
+      const line = Math.max(F + S, ours + Se);
+      res.push({ F, ours, line });
+      if (m[b] - line > best) { best = m[b] - line; bi = b; }
+    }
+    let cand = best > 0;
+    // just after the sounds came back (fading in), a borderline "noise" in a band they play in is
+    // most likely their own echo, louder than measured: not a noise, and from now on expect our
+    // sound a bit louder there (a loud noise is a real one)
+    if (cand && best < 10 && this.t - this.resumeAt < HUSH.RESUME && res[bi].ours > res[bi].F - 3) {
+      cand = false;
+      if (!this.guarded) { this.guarded = true; this.backoff[bi] = Math.min(HUSH.BACKOFF_MAX, this.backoff[bi] + HUSH.BACKOFF); }
+    }
+    // a noise: two frames out of three over the line (40 ms), or one far over it (a knock)
+    const trig = cand && (best > 8 || this.prev[0] || this.prev[1]);
+    this.prev = [cand, this.prev[0]];
+    for (let b = 0; b < 3; b++) {
+      const F = this.floor[b];
+      // while we play: what the microphone hears above the quiet, against what we sent; a frame
+      // the room's quiet explains needs nothing (-Infinity)
+      if (!cand) {
+        const heard = m[b] > F + 4;
+        if (this.env[b] > HUSH.PLAYING) this.need[b].push([this.t, heard ? m[b] - this.env[b] : -Infinity]);
+        if (this.env[3] > HUSH.PLAYING) this.needX[b].push([this.t, heard ? m[b] - this.env[3] : -Infinity]);
+      }
+      if (m[b] < F) this.floor[b] = Math.max(-110, F + (m[b] - F) * HUSH.FALL);
+      else if (res[b].ours < F - 3) this.floor[b] = F + Math.min(m[b] - F, HUSH.RISE * dt);
+    }
+    const r = res[bi];
+    return { trig, level: m[bi] - r.F, line: r.line - r.F, ours: r.ours - r.F };
+  }
+
+  fit() {
+    const since = this.t - HUSH.CWIN;
+    for (let b = 0; b < 3; b++) {
+      for (const [list, out] of [[this.need, this.c], [this.needX, this.cx]]) {
+        const a = list[b];
+        let i = 0;
+        while (i < a.length && a[i][0] < since) i++;
+        if (i) a.splice(0, i);
+        // too little playing lately (e.g. faded out for a while): keep the last measure
+        if (a.length * this.dt < HUSH.CMIN) continue;
+        let v = -Infinity;
+        for (const x of a) if (x[1] > v) v = x[1];
+        out[b] = v === -Infinity ? -60 : Math.min(30, v);
+      }
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------------------
 // Page-level controller: one subscription + one audio engine per browser tab.
 // ---------------------------------------------------------------------------------------
 class SoundboardController {
@@ -236,7 +427,13 @@ class SoundboardController {
     this.directNodes = new Set(); // "play now" effects, mixed over the queue
     this.layers = new Map(); // background layer id -> { audio, gen }
     this.pool = []; // <audio> elements unlocked by a tap, so layers can start later without one
+    this.rpool = []; // the same, played through Web Audio (while hush listens): {audio, gain}
+    this.routeMusic = false;
+    this.out = null; // every sound this page plays goes through this gain (the hush fades it)
+    this.hush = null; // listening: {det, stream, nodes, frames, status, hushed, until, heard}
+    this.hushTestUntil = 0;
     this.locked = true;
+    document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && this.hush) this.wakeLock(true); });
   }
 
   static guessName() {
@@ -297,7 +494,8 @@ class SoundboardController {
   voiceLangs() {
     if (this._vlLib !== this.lib) {
       this._vlLib = this.lib;
-      const all = [...(this.lib?.sfx || []), ...(this.lib?.music || [])];
+      // effects only: a sung carol's language is shown on it, not filtered
+      const all = this.lib?.sfx || [];
       this._vl = VOICE_LANGS.filter((l) => all.some((s) => s.lang === l));
     }
     return this._vl;
@@ -311,7 +509,10 @@ class SoundboardController {
 
   langOk(s, shown = this.shownLangs()) { return !s.lang || shown.includes(s.lang); }
 
-  render(full = false) { for (const c of this.cards) c.update(full); }
+  render(full = false) {
+    this.syncHush();
+    for (const c of this.cards) c.update(full);
+  }
 
   now() { return Date.now() / 1000 + this.skew; }
 
@@ -367,8 +568,17 @@ class SoundboardController {
   }
 
   // ----- local audio ("This device" + previews) -----
-  unlock() {
+  audioCtx() {
     if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+    if (!this.out) {
+      this.out = this.ctx.createGain();
+      this.out.connect(this.ctx.destination);
+    }
+    return this.ctx;
+  }
+
+  unlock() {
+    this.audioCtx();
     if (this.ctx.state === "suspended") this.ctx.resume();
     if (!this.pool.length) {
       // mobile browsers only let an <audio> play from a tap: bless a few now, one per mixed layer
@@ -411,8 +621,7 @@ class SoundboardController {
         throw new Error(`HTTP ${res.status}`);
       }
       const data = await res.arrayBuffer();
-      if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
-      return await this.ctx.decodeAudioData(data);
+      return await this.audioCtx().decodeAudioData(data);
     })();
     this.buffers.set(url, p);
     p.catch(() => this.buffers.delete(url));
@@ -426,7 +635,7 @@ class SoundboardController {
     const gain = this.ctx.createGain();
     gain.gain.value = volume;
     src.buffer = buf;
-    src.connect(gain).connect(this.ctx.destination);
+    src.connect(gain).connect(this.out);
     src.gainNode = gain;
     const set = direct ? this.directNodes : this.sfxNodes;
     src.onended = () => set.delete(src);
@@ -455,34 +664,215 @@ class SoundboardController {
       const l = this.layer(id);
       // signing is a round trip: a stop arriving meanwhile must win over this play
       const gen = ++l.gen;
-      const a = l.audio;
       // a looping layer loops by itself here: a repeat of the same track must not restart it
-      if (m.loop && l.url === m.url && !a.paused) { a.volume = clamp01(m.volume); return; }
+      if (m.loop && l.url === m.url && !l.audio.paused) { this.setVol(l, m.volume); return; }
       const src = await this.sign(m.url, true);
       if (gen !== l.gen || this.layers.get(id) !== l) return;
+      const a = l.audio;
       l.url = m.url;
       a.loop = !!m.loop;
       // fresh link per track: a 7 h track streams with range requests for hours, so a
       // cached link close to its 24 h expiry would start being refused mid-track
       a.src = src;
-      a.volume = clamp01(m.volume);
+      this.setVol(l, m.volume);
       const start = () => { try { a.currentTime = m.offset; } catch (e) { /* not seekable yet */ } a.play().catch(() => { this.locked = true; this.render(); }); };
       if (a.readyState >= 1) start(); else a.addEventListener("loadedmetadata", start, { once: true });
     } else if (m.cmd === "music_stop") {
       for (const id of m.layer ? [m.layer] : [...this.layers.keys()]) this.dropLayer(id);
     } else if (m.cmd === "music_volume") {
-      for (const [id, v] of Object.entries(m.layers || {})) { const l = this.layers.get(id); if (l) l.audio.volume = clamp01(v); }
+      for (const [id, v] of Object.entries(m.layers || {})) { const l = this.layers.get(id); if (l) this.setVol(l, v); }
     }
   }
 
   layer(id) {
     let l = this.layers.get(id);
     if (!l) {
-      const audio = this.pool.find((a) => ![...this.layers.values()].some((x) => x.audio === a)) || new Audio();
-      l = { audio, gen: 0 };
+      const busy = new Set([...this.layers.values()].map((x) => x.audio));
+      const r = this.routeMusic && this.ctx ? this.routed(busy)
+        : { audio: this.pool.find((a) => !busy.has(a)) || new Audio(), gain: null };
+      l = { audio: r.audio, gain: r.gain, gen: 0 };
       this.layers.set(id, l);
     }
     return l;
+  }
+
+  // an <audio> played through Web Audio (its own gain, then this.out), so the hush hears it and
+  // fades it. Only while listening: phones stop Web Audio when the screen locks, not <audio>.
+  routed(busy) {
+    let r = this.rpool.find((x) => !busy.has(x.audio));
+    if (!r) {
+      const audio = new Audio();
+      const gain = this.ctx.createGain();
+      this.ctx.createMediaElementSource(audio).connect(gain).connect(this.out);
+      r = { audio, gain };
+      this.rpool.push(r);
+    }
+    return r;
+  }
+
+  setVol(l, v) {
+    if (l.gain) { l.gain.gain.value = clamp01(v); l.audio.volume = 1; } else l.audio.volume = clamp01(v);
+  }
+
+  // listening starts while tracks play: each moves onto a routed <audio>, where it was
+  routeLayers() {
+    if (!this.ctx) return;
+    const busy = new Set([...this.layers.values()].map((x) => x.audio));
+    for (const l of this.layers.values()) {
+      if (l.gain) continue;
+      const old = l.audio, r = this.routed(busy);
+      busy.add(r.audio);
+      r.gain.gain.value = old.volume;
+      r.audio.loop = old.loop;
+      if (old.src && !old.paused) {
+        const at = old.currentTime;
+        r.audio.src = old.src;
+        const go = () => { try { r.audio.currentTime = at + 0.1; } catch (e) { /* not seekable yet */ } r.audio.play().catch(() => {}); };
+        if (r.audio.readyState >= 1) go(); else r.audio.addEventListener("loadedmetadata", go, { once: true });
+      }
+      old.pause();
+      l.audio = r.audio;
+      l.gain = r.gain;
+    }
+  }
+
+  // ----- hush (see HushDetector) -----
+  hushWanted() {
+    if (!this.lib?.hush) return false;
+    return !!this.state?.settings?.hush?.on || this.hushTestUntil > Date.now();
+  }
+
+  // from the tap that turns it on or starts a test: a phone lets an <audio> start only from a tap
+  hushArm() {
+    this.unlock();
+    while (this.rpool.length < 4) {
+      const r = this.routed(new Set(this.rpool.map((x) => x.audio)));
+      r.audio.src = SILENT_WAV;
+      r.audio.play().then(() => { if (r.audio.src === SILENT_WAV) r.audio.pause(); }).catch(() => {});
+    }
+    this.routeMusic = true;
+    this.routeLayers();
+  }
+
+  syncHush() {
+    const want = this.hushWanted();
+    if (want && !this.hush) this.hushStart();
+    else if (!want && this.hush) this.hushStop();
+  }
+
+  async hushStart() {
+    const h = (this.hush = { det: new HushDetector(), frames: [], status: "starting", hushed: false, until: 0, heard: 0, nodes: [], taps: [] });
+    try {
+      this.audioCtx();
+      this.routeMusic = true;
+      this.routeLayers();
+      if (!navigator.mediaDevices?.getUserMedia) throw Object.assign(new Error("no microphone API"), { name: "NotFoundError" });
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: IOS, noiseSuppression: false, autoGainControl: false } });
+      h.stream = stream;
+      if (this.hush !== h) { stream.getTracks().forEach((t) => t.stop()); return; }
+      const ctx = this.ctx;
+      this.hushModule ||= ctx.audioWorklet.addModule(URL.createObjectURL(new Blob([HUSH_WORKLET], { type: "text/javascript" })));
+      await this.hushModule;
+      if (this.hush !== h) { stream.getTracks().forEach((t) => t.stop()); return; }
+      const mic = ctx.createMediaStreamSource(stream);
+      const merger = ctx.createChannelMerger(6);
+      h.nodes.push(mic, merger);
+      HUSH_BANDS.forEach((f, i) => {
+        for (const [src, ch] of [[mic, i], [this.out, 3 + i]]) {
+          const bp = ctx.createBiquadFilter();
+          bp.type = "bandpass";
+          bp.frequency.value = f;
+          bp.Q.value = 0.7;
+          src.connect(bp);
+          bp.connect(merger, 0, ch);
+          h.taps.push([src, bp]);
+          h.nodes.push(bp);
+        }
+      });
+      const node = new AudioWorkletNode(ctx, "sb-hush", { numberOfInputs: 1, numberOfOutputs: 1, outputChannelCount: [1],
+        channelCount: 6, channelCountMode: "explicit", channelInterpretation: "discrete" });
+      const sink = ctx.createGain(); // keeps the worklet pulled by the graph, silently
+      sink.gain.value = 0;
+      merger.connect(node).connect(sink).connect(ctx.destination);
+      h.nodes.push(node, sink);
+      h.node = node;
+      node.port.onmessage = (e) => this.hushFrame(h, e.data);
+      stream.getAudioTracks()[0]?.addEventListener("ended", () => { if (this.hush === h) { h.status = "ended"; this.render(); } });
+      h.status = "listening";
+      this.wakeLock(true);
+    } catch (e) {
+      console.warn("soundboard hush", e);
+      h.status = e?.name === "NotAllowedError" || e?.name === "SecurityError" ? "denied" : "nomic";
+    }
+    this.render();
+  }
+
+  hushFrame(h, f) {
+    if (this.hush !== h) return;
+    const s = this.state?.settings?.hush || {};
+    const r = h.det.push(f, f[6] / this.ctx.sampleRate, s.sens ?? 8);
+    const t = h.det.t;
+    let changed = false;
+    if (r?.trig) {
+      h.heard = Date.now();
+      if (s.on) {
+        h.until = t + (s.hold_s ?? 10);
+        if (!h.hushed) { h.hushed = true; this.duck(0, 0.08); changed = true; }
+      }
+    }
+    if (h.hushed && (t >= h.until || !s.on)) {
+      h.hushed = false;
+      this.duck(1, 0.8);
+      h.det.resumed();
+      changed = true;
+    }
+    if (r) {
+      h.frames.push([t, r.level, r.line, r.ours, r.trig ? 1 : 0, h.hushed ? 1 : 0]);
+      if (h.frames.length > 1800) h.frames.splice(0, 300);
+    }
+    if (changed) this.render();
+  }
+
+  // fade everything this page plays: down fast (tau 0.08 s: silent in ~0.3 s), back up gently
+  duck(v, tau) {
+    if (!this.out) return;
+    const g = this.out.gain, t = this.ctx.currentTime;
+    g.cancelScheduledValues(t);
+    g.setValueAtTime(g.value, t);
+    g.setTargetAtTime(v, t, tau);
+  }
+
+  hushStop() {
+    const h = this.hush;
+    this.hush = null;
+    if (!h) return;
+    h.stream?.getTracks().forEach((t) => t.stop());
+    if (h.node) h.node.port.onmessage = null;
+    for (const [src, n] of h.taps) { try { src.disconnect(n); } catch (e) { /* gone */ } }
+    for (const n of h.nodes) { try { n.disconnect(); } catch (e) { /* gone */ } }
+    if (h.hushed) this.duck(1, 0.3);
+    this.routeMusic = false;
+    this.wakeLock(false);
+    this.render();
+  }
+
+  hushTest() {
+    this.hushArm();
+    this.hushTestUntil = Date.now() + 30000;
+    clearTimeout(this._htT);
+    this._htT = setTimeout(() => this.render(), 30100);
+    this.render();
+  }
+
+  // the screen stays on while listening (a sleeping phone hears nothing)
+  async wakeLock(on) {
+    if (!on) { const w = this._wl; this._wl = null; w?.release?.().catch(() => {}); return; }
+    try {
+      if ("wakeLock" in navigator && !this._wl) {
+        this._wl = await navigator.wakeLock.request("screen");
+        this._wl.addEventListener("release", () => { this._wl = null; });
+      }
+    } catch (e) { /* not allowed here (e.g. page hidden) */ }
   }
 
   dropLayer(id) {
@@ -637,6 +1027,7 @@ class SoundboardCard extends HTMLElement {
     this.renderQueue();
     this.renderHistory();
     this.renderAim();
+    if (SB.hush && this.ui.tab === "spk") this.hushLoop();
     const q = st.queue;
     const cur = q.items.find((i) => i.uid === q.current && !i.waiting);
     const queued = q.items.filter((i) => i.status === "pending" && i.type === "sound").map((i) => i.id);
@@ -686,10 +1077,11 @@ class SoundboardCard extends HTMLElement {
       <span class="tab-l">${label}</span><small class="tab-sub">${sub}</small></button>`;
     const pct = (v) => `${Math.round(v * 100)}%`;
     const spk = this.config.standalone
-      ? tab("spk", T("tab_volume"), `🎼 ${pct(s.music.volume)} · ${FX} ${pct(s.sfx.volume)}`)
+      ? tab("spk", T("tab_settings"), `🎼 ${pct(s.music.volume)} · ${FX} ${pct(s.sfx.volume)}${s.hush?.on ? " · 🤫" : ""}`)
       : tab("spk", T("tab_speakers"), `🎼 ${s.music.speakers.length} · ${FX} ${s.sfx.speakers.length}`);
     const haunt = s.haunt?.on;
-    const live = [m.playing ? `🎼 ${T("on")}` : "", q.running ? `${FX} ${T("on")}` : "", haunt ? MODE : "", s.motion?.on && !this.config.guest ? "🏃" : ""].filter(Boolean).join(" · ");
+    const live = [m.playing ? `🎼 ${T("on")}` : "", q.running ? `${FX} ${T("on")}` : "", haunt ? MODE : "", s.motion?.on && !this.config.guest ? "🏃" : "",
+      SB.hush?.hushed ? "🤫" : ""].filter(Boolean).join(" · ");
     this.setHTML(".bar", spk + tab("snd", `${esc(theme.emoji || "🎵")} ${T("tab_sounds")}`, live || T("pick_play"))
       + `<button class="stopall ${m.playing || q.running || haunt ? "live" : ""}" data-act="stopall" title="${T("stop_all_t")}"><ha-icon icon="mdi:stop-circle"></ha-icon><span>${T("stop_all")}</span></button>`);
   }
@@ -703,21 +1095,27 @@ class SoundboardCard extends HTMLElement {
     this.setHTML(".music-tools", this.config.guest || !hiddenM.length ? "" : `<label class="tog sm" title="${T("show_hidden_t")}">
         <input type="checkbox" data-act="showhiddenmusic" ${this.ui.showHiddenMusic ? "checked" : ""}> ${T("show_hidden")} <small class="muted">${hiddenM.length}${downM ? ` · ${downM} 👎` : ""}</small></label>`);
     // a selected track stays listed even when hidden, so it can be unticked
-    const shownL = SB.shownLangs();
-    const tracks = SB.favFirst(lib.music.filter((t) => (SB.langOk(t, shownL) && (this.ui.showHiddenMusic || !SB.isHidden(t.id))) || sel.has(t.id)));
+    const tracks = SB.favFirst(lib.music.filter((t) => this.ui.showHiddenMusic || !SB.isHidden(t.id) || sel.has(t.id)));
     const layers = m.playing ? m.layers : [];
     const levels = ms.levels || {};
-    this.setHTML(".tracks", tracks.length ? tracks.map((t) => {
+    const row = (t) => {
       const lvl = Math.round((levels[t.id] ?? 1) * 100);
       // the slider sits outside the <label> so dragging it doesn't tick the box
       return `<div class="track-w ${sel.has(t.id) ? "sel" : ""}"><label class="track ${layers.some((l) => l.track === t.id) ? "playing" : ""} ${this.markClass(t.id)}">
         <input type="checkbox" data-act="track" data-id="${esc(t.id)}" ${sel.has(t.id) ? "checked" : ""}>
-        <span class="t-title">${esc(ttl(t))}</span>${this.icons(t.id, fmtDur(t.duration), false)}
+        <span class="t-title">${esc(ttl(t))}${t.lang ? ` <span class="m-lang" title="${T("sung_in", t.lang)}">${esc(t.lang.toUpperCase())}</span>` : ""}</span>${this.icons(t.id, fmtDur(t.duration), false)}
       </label>${ms.mix && sel.has(t.id) ? `<div class="lvl"><ha-icon icon="mdi:volume-high"></ha-icon>
         <input type="range" min="0" max="150" step="5" value="${lvl}" data-act="level" data-id="${esc(t.id)}" list="lvl-100"
           title="${T("level_t")}"><span class="lvl-v">${lvl}%</span></div>` : ""}</div>`;
-    }).join("") + `<datalist id="lvl-100"><option value="100"></option></datalist>`
-      : `<div class="empty">${T("no_tracks")}</div>`);
+    };
+    // music (carols: usually one at a time) apart from ambiences (fire, wind: often several)
+    const music = tracks.filter((t) => t.group === "music"), amb = tracks.filter((t) => t.group !== "music");
+    const list = (ts) => `<div class="tracks-in">${ts.map(row).join("")}</div>`;
+    this.setHTML(".tracks", !tracks.length ? `<div class="empty">${T("no_tracks")}</div>`
+      : (music.length && amb.length
+        ? `<div class="tgroup"><div class="lbl" title="${T("bg_music_t")}">${T("bg_music")}</div>${list(music)}</div>
+           <div class="tgroup"><div class="lbl" title="${T("bg_amb_t")}">${T("bg_amb")}</div>${list(amb)}</div>`
+        : list(tracks)) + `<datalist id="lvl-100"><option value="100"></option></datalist>`);
     const np = layers.map((l) => {
       const el = Math.max(0, SB.now() - l.started);
       return `<div class="np-row"><span class="eq"><i></i><i></i><i></i></span><span class="np-t">${esc(ttl(SB.lib.music.find((t) => t.id === l.track)) || l.title)}</span>
@@ -729,7 +1127,7 @@ class SoundboardCard extends HTMLElement {
     const nSel = ms.tracks.length;
     this.setHTML(".music-ctl", `
       <button class="btn primary" data-act="mplay" ${nSel ? "" : "disabled"}><ha-icon icon="mdi:play"></ha-icon> ${m.playing ? T("restart") : T("play")}${nSel > 1 ? ` ${ms.mix ? T("n_mixed", nSel) : T("n_tracks", nSel)}` : ""}</button>
-      <button class="btn" data-act="mnext" ${m.playing && !m.mix && layers[0]?.count > 1 ? "" : "disabled"} aria-label="${T("next_track")}"><ha-icon icon="mdi:skip-next"></ha-icon></button>
+      <button class="btn" data-act="mnext" ${m.playing && layers.find((l) => l.id === (m.mix ? "music" : "main"))?.count > 1 ? "" : "disabled"} aria-label="${T("next_track")}"><ha-icon icon="mdi:skip-next"></ha-icon></button>
       <button class="btn" data-act="mstop" ${m.playing ? "" : "disabled"}><ha-icon icon="mdi:stop"></ha-icon> ${T("stop")}</button>
       <label class="tog"><input type="checkbox" data-act="mloop" ${ms.loop ? "checked" : ""}> ${T("loop")}</label>
       <label class="tog" title="${T("mix_t")}"><input type="checkbox" data-act="mmix" ${ms.mix ? "checked" : ""}> ${T("mix")}</label>
@@ -776,7 +1174,7 @@ class SoundboardCard extends HTMLElement {
       <div class="hint">${cfg.standalone ? T("hint_public") : T("hint_house")}</div></div>`;
     if (cfg.standalone) {
       const offlineDone = LS(`offline_done.${SB.libTheme}`);
-      this.setHTML(".dev-b", presetsHtml + masters + `
+      this.setHTML(".dev-b", presetsHtml + masters + this.hushHtml() + `
         <div class="data"><span class="lbl">${T("your_data")}</span>
           <span class="hint">${T("data_hint")}</span>
           <div class="ctl-line"><button class="btn sm" data-act="dexport"><ha-icon icon="mdi:download"></ha-icon> ${T("export")}</button>
@@ -821,6 +1219,129 @@ class SoundboardCard extends HTMLElement {
       <div class="dev-t"><div class="dev-row dev-cols"><span class="dev-n">${T("speakers")}
           <button class="chip warm sm ${st.warm ? "on" : ""}" data-act="warm" title="${T("instant_t")}"><ha-icon icon="mdi:flash"></ha-icon>${T("instant_short")}: ${warmTxt}</button></span>${P.map(([, emoji, label]) => `<span class="tg-h" title="${label}"><span>${emoji}</span><small>${label}</small></span>`).join("")}<span class="tg-h" title="${T("level_t2")}"><span>🎚️</span><small>${T("level")}</small></span></div>
         ${groups}</div>`);
+  }
+
+  // public build, themes with "hush": fade out at a noise the microphone hears (see HushDetector)
+  hushHtml() {
+    if (!SB.lib?.hush) return "";
+    const h = { on: false, sens: 8, hold_s: 10, ...(SB.state.settings.hush || {}) };
+    const testing = SB.hushTestUntil > Date.now();
+    return `<div class="hush-p ${h.on ? "on" : ""}">
+      <label class="tog big"><input type="checkbox" data-act="hush" ${h.on ? "checked" : ""}> 🤫 ${T("hush")}</label>
+      <span class="hint">${T("hush_hint", h.hold_s)}${IOS ? ` ${T("hush_ios")}` : ""}</span>
+      <div class="ctl-line gap"><span>${T("hush_sens")}</span>
+        <input type="range" min="1" max="10" step="1" value="${h.sens}" data-act="hsens" aria-label="${T("hush_sens")}"><b class="gap-v">${h.sens}/10</b></div>
+      <div class="ctl-line gap"><span>${T("hush_hold")}</span>
+        <input type="range" min="3" max="60" step="1" value="${h.hold_s}" data-act="hhold" aria-label="${T("hush_hold")}"><b class="gap-v">${h.hold_s}s</b></div>
+      <div class="ctl-line"><button class="btn sm" data-act="htest" ${testing ? "disabled" : ""} title="${T("hush_test_t")}">🎙️ ${T("hush_test")}</button></div>
+      <div class="hush-status hint" aria-live="polite"></div>
+      ${SB.hush ? `<div class="hush-w"><canvas class="hush-chart" role="img" aria-label="${T("hush_chart_l")}"></canvas>
+        <div class="hush-leg"><span><i class="sw lv"></i>${T("hush_l_level")}</span><span><i class="sw th"></i>${T("hush_l_line")}</span>
+          <span><i class="sw ow"></i>${T("hush_l_ours")}</span><span><i class="sw tr"></i>${T("hush_l_heard")}</span>${h.on ? `<span><i class="sw hd"></i>${T("hush_l_hushed")}</span>` : ""}</div></div>` : ""}
+    </div>`;
+  }
+
+  hushStatus() {
+    const h = SB.hush;
+    if (!h) return "";
+    if (h.status !== "listening") return T(`hush_${h.status}`);
+    const on = !!SB.state?.settings?.hush?.on;
+    const left = Math.ceil((SB.hushTestUntil - Date.now()) / 1000);
+    if (left > 0) return T("hush_testing", left) + (on ? "" : ` ${T("hush_test_off")}`);
+    if (h.hushed) return T("hush_quiet", Math.max(1, Math.ceil(h.until - h.det.t)));
+    const ago = h.heard ? Math.round((Date.now() - h.heard) / 1000) : null;
+    return T("hush_listen") + (ago != null ? ` · ${T("hush_heard_ago", ago < 60 ? `${ago} s` : fmtDur(ago))}` : "");
+  }
+
+  // the live chart and status line, while listening and the settings tab shows them
+  hushLoop() {
+    if (this._hraf) return;
+    let last = 0;
+    const tick = (now) => {
+      this._hraf = null;
+      const cv = this.shadowRoot?.querySelector(".hush-chart");
+      const st = this.shadowRoot?.querySelector(".hush-status");
+      if (!SB.hush || this.ui.tab !== "spk") { if (st) st.textContent = this.hushStatus(); return; }
+      if (now - last > 50) {
+        last = now;
+        if (st) st.textContent = this.hushStatus();
+        if (cv) this.drawHush(cv);
+      }
+      this._hraf = requestAnimationFrame(tick);
+    };
+    this._hraf = requestAnimationFrame(tick);
+  }
+
+  // last 30 s: what the microphone hears (dB above the room's quiet), the line a noise must cross
+  // (it rises with what this device plays), our own sound as heard, noises heard, faded spans
+  drawHush(cv) {
+    const h = SB.hush, fr = h.frames;
+    const dpr = window.devicePixelRatio || 1, W = cv.clientWidth, H = cv.clientHeight;
+    if (!W || !H) return;
+    if (cv.width !== Math.round(W * dpr) || cv.height !== Math.round(H * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); }
+    const g = cv.getContext("2d");
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    g.clearRect(0, 0, W, H);
+    const css = getComputedStyle(this);
+    const col = (v, d) => css.getPropertyValue(v).trim() || d;
+    const fg = col("--fg", "#eee"), accent = col("--sb-accent", "#e23744"), live = col("--live", "#ffd76e"), mute = col("--mute", "#999");
+    const SPAN = 30, Y0 = -6, Y1 = 42, padL = 30, top = 6, bottom = H - 6;
+    const tEnd = h.det.t;
+    const x = (t) => padL + (W - padL) * (1 - (tEnd - t) / SPAN);
+    const y = (v) => bottom - ((Math.max(Y0, Math.min(Y1, v)) - Y0) / (Y1 - Y0)) * (bottom - top);
+    g.font = "10px system-ui, sans-serif";
+    g.textBaseline = "middle";
+    for (const v of [0, 20, 40]) {
+      g.strokeStyle = "rgba(255,255,255,.08)";
+      g.lineWidth = 1;
+      g.beginPath(); g.moveTo(padL, y(v)); g.lineTo(W, y(v)); g.stroke();
+      g.fillStyle = mute;
+      g.fillText(v ? `+${v}` : "0", 4, y(v));
+    }
+    const vis = fr.filter((f) => f[0] >= tEnd - SPAN);
+    if (!vis.length) return;
+    // faded-out spans (hatched, as in the legend)
+    if (!this._hatch) {
+      const t = document.createElement("canvas");
+      t.width = t.height = 8;
+      const tg = t.getContext("2d");
+      tg.strokeStyle = "rgba(255,255,255,.13)";
+      tg.lineWidth = 2;
+      tg.beginPath(); tg.moveTo(0, 8); tg.lineTo(8, 0); tg.stroke();
+      this._hatch = t;
+    }
+    g.fillStyle = g.createPattern(this._hatch, "repeat");
+    for (let i = 0; i < vis.length; i++) {
+      if (!vis[i][5]) continue;
+      let j = i;
+      while (j + 1 < vis.length && vis[j + 1][5]) j++;
+      g.fillRect(x(vis[i][0]), top, Math.max(1, x(vis[j][0]) - x(vis[i][0])), bottom - top);
+      i = j;
+    }
+    // our own sound, as the microphone should hear it
+    g.fillStyle = "rgba(180,190,205,.22)";
+    g.beginPath();
+    g.moveTo(x(vis[0][0]), bottom);
+    for (const f of vis) g.lineTo(x(f[0]), y(f[3]));
+    g.lineTo(x(vis[vis.length - 1][0]), bottom);
+    g.closePath();
+    g.fill();
+    const path = (k, color, dash) => {
+      g.strokeStyle = color;
+      g.lineWidth = 2;
+      g.lineJoin = "round";
+      g.setLineDash(dash);
+      g.beginPath();
+      vis.forEach((f, i) => (i ? g.lineTo(x(f[0]), y(f[k])) : g.moveTo(x(f[0]), y(f[k]))));
+      g.stroke();
+      g.setLineDash([]);
+    };
+    path(2, accent, [5, 4]);
+    path(1, fg, []);
+    // noises heard
+    g.strokeStyle = live;
+    g.lineWidth = 2;
+    for (const f of vis) if (f[4]) { g.beginPath(); g.moveTo(x(f[0]), top); g.lineTo(x(f[0]), bottom); g.stroke(); }
   }
 
   // HA only, admins only (the server refuses it from guests too)
@@ -1115,6 +1636,7 @@ class SoundboardCard extends HTMLElement {
       case "mplay": SB.ws({ type: "soundboard/music", action: "play" }); break;
       case "mnext": SB.ws({ type: "soundboard/music", action: "next" }); break;
       case "mstop": SB.ws({ type: "soundboard/music", action: "stop" }); break;
+      case "htest": SB.hushTest(); break;
       case "spk": {
         const p = b.dataset.panel, id = b.dataset.id, cur = this.speakersFor(p);
         const next = cur.includes(id) ? cur.filter((x) => x !== id) : cur.concat(id);
@@ -1256,7 +1778,8 @@ class SoundboardCard extends HTMLElement {
     if (t.dataset.act === "vol") label(".vol-v", `${t.value}%`);
     if (t.dataset.act === "level") label(".lvl-v", `${t.value}%`);
     if (t.dataset.act === "trim") label(".trim-v", `${t.value}%`);
-    if (["gap", "mcool", "hmin", "hmax"].includes(t.dataset.act)) { const el = t.nextElementSibling; if (el) el.textContent = `${t.value}s`; }
+    if (["gap", "mcool", "hmin", "hmax", "hhold"].includes(t.dataset.act)) { const el = t.nextElementSibling; if (el) el.textContent = `${t.value}s`; }
+    if (t.dataset.act === "hsens") { const el = t.nextElementSibling; if (el) el.textContent = `${t.value}/10`; }
     if (t.dataset.act === "filter") { this.ui.filter = t.value; clearTimeout(this._ft); this._ft = setTimeout(() => this.update(), 120); }
   }
 
@@ -1281,6 +1804,9 @@ class SoundboardCard extends HTMLElement {
       case "hmax": SB.patch({ haunt: { max_s: +t.value, min_s: Math.min(+t.value, h.min_s) } }); break;
       case "motion": SB.patch({ motion: { on: t.checked } }); break;
       case "mcool": SB.patch({ motion: { cooldown_s: +t.value } }); break;
+      case "hush": if (t.checked) SB.hushArm(); SB.patch({ hush: { on: t.checked } }); break;
+      case "hsens": SB.patch({ hush: { sens: +t.value } }); break;
+      case "hhold": SB.patch({ hush: { hold_s: +t.value } }); break;
     }
   }
 
@@ -1461,7 +1987,12 @@ input[type=range] { accent-color:var(--sb-accent); width:100%; min-width:0; curs
 .tog { display:inline-flex; gap:7px; align-items:center; font-size:14px; font-weight:600; user-select:none; cursor:pointer; }
 .tog.sm { font-size:13px; font-weight:500; color:var(--mute); }
 .tog input, .track input { accent-color:var(--sb-accent); width:18px; height:18px; }
-.tracks { display:grid; grid-template-columns:repeat(auto-fill, minmax(290px, 1fr)); gap:4px 12px; }
+.tracks { display:flex; flex-direction:column; gap:14px; }
+.tracks-in { display:grid; grid-template-columns:repeat(auto-fill, minmax(290px, 1fr)); gap:4px 12px; }
+.tgroup { display:flex; flex-direction:column; gap:6px; }
+.tgroup > .lbl { padding-left:10px; }
+.m-lang { display:inline-block; padding:0 5px; margin-left:4px; border-radius:6px; font-size:10px; font-weight:800; letter-spacing:.05em;
+  color:var(--mute); border:1px solid var(--line); vertical-align:1px; }
 .track-w { display:flex; flex-direction:column; border-radius:12px; border:1px solid transparent; }
 .track-w.sel { background:color-mix(in srgb, var(--sb-accent) 9%, transparent); border-color:color-mix(in srgb, var(--sb-accent) 35%, transparent); }
 .track { display:flex; align-items:center; gap:10px; padding:8px 10px; border-radius:12px; cursor:pointer; }
@@ -1584,9 +2115,20 @@ input[type=range] { accent-color:var(--sb-accent); width:100%; min-width:0; curs
 .chip.scene small { margin-left:auto; padding-left:4px; white-space:nowrap; }
 .chip.scene .sc-e { font-size:17px; line-height:1; }
 .chip.scene.flash { animation:flash .5s ease-out; }
-.haunt-in, .motion { display:flex; flex-direction:column; gap:8px; padding:12px 14px; border-radius:14px; border:1px solid var(--line); background:rgba(0,0,0,.2); transition:border-color .3s, box-shadow .3s; }
-.haunt-in.on, .motion.on { border-color:var(--live); box-shadow:0 0 26px -12px var(--live); }
-.haunt-in.on .tog.big { color:var(--live); }
+.haunt-in, .motion, .hush-p { display:flex; flex-direction:column; gap:8px; padding:12px 14px; border-radius:14px; border:1px solid var(--line); background:rgba(0,0,0,.2); transition:border-color .3s, box-shadow .3s; }
+.haunt-in.on, .motion.on, .hush-p.on { border-color:var(--live); box-shadow:0 0 26px -12px var(--live); }
+.haunt-in.on .tog.big, .hush-p.on .tog.big { color:var(--live); }
+.hush-p .gap input { flex:1 1 120px; }
+.hush-status:empty { display:none; }
+.hush-w { display:flex; flex-direction:column; gap:6px; }
+.hush-chart { display:block; width:100%; height:130px; border-radius:10px; background:rgba(0,0,0,.28); border:1px solid var(--line); }
+.hush-leg { display:flex; flex-wrap:wrap; gap:4px 14px; font-size:12px; color:var(--mute); }
+.hush-leg .sw { display:inline-block; width:16px; height:2px; border-radius:2px; margin-right:6px; vertical-align:middle; }
+.sw.lv { background:var(--fg); }
+.sw.th { background:repeating-linear-gradient(90deg, var(--sb-accent) 0 5px, transparent 5px 9px); }
+.sw.ow { height:10px; background:rgba(180,190,205,.3); }
+.sw.tr { width:2px; height:12px; background:var(--live); }
+.sw.hd { height:10px; background:repeating-linear-gradient(135deg, rgba(255,255,255,.22) 0 2px, transparent 2px 5px); border:1px solid rgba(255,255,255,.18); }
 .h-opts summary { cursor:pointer; font-size:13.5px; font-weight:700; padding:2px 0; }
 .h-opts[open] { display:flex; flex-direction:column; gap:10px; }
 .h-opts .ctl-line { flex-wrap:wrap; }

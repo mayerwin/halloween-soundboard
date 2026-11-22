@@ -9,19 +9,19 @@ leading and trailing silence and loudness-normalised (EBU R128), some are cut fr
 
 | Sound | Category | Author | License | Source |
 |---|---|---|---|---|
-| Churchyard at midnight | Background | BBC | BBC RemArc licence (BBC Sound Effects archive) | [link](https://sound-effects.bbcrewind.co.uk/search?q=07030036) |
-| Graveyard at night | Background | GreatGizmo74 | CC BY | [link](https://freesound.org/people/GreatGizmo74/sounds/685063/) |
-| Graveyard (loop) | Background | halloweensoundboard.com | © halloweensoundboard.com | [link](https://halloweensoundboard.com/) |
-| Haunted house ambience 2 | Background | Digital Gold Pictures | CC0 1.0 (public domain dedication) | [link](https://freesound.org/people/Digital Gold Pictures/sounds/63262/) |
-| Haunted house ambience | Background | klankbeeld | CC BY | [link](https://freesound.org/people/klankbeeld/sounds/255715/) |
-| Horror ambience | Background | Mixkit | Mixkit Sound Effects Free License (mixkit.co) | [link](https://mixkit.co/free-sound-effects/) |
-| Howling wind | Background | BBC | BBC RemArc licence (BBC Sound Effects archive) | [link](https://sound-effects.bbcrewind.co.uk/search?q=07038330) |
-| Laboratory (loop) | Background | halloweensoundboard.com | © halloweensoundboard.com | [link](https://halloweensoundboard.com/) |
-| Sewer (loop) | Background | halloweensoundboard.com | © halloweensoundboard.com | [link](https://halloweensoundboard.com/) |
-| Storm (loop) | Background | halloweensoundboard.com | © halloweensoundboard.com | [link](https://halloweensoundboard.com/) |
-| Thunderstorm | Background | John Burton | BBC RemArc licence (BBC Sound Effects archive) | [link](https://sound-effects.bbcrewind.co.uk/search?q=NHU05073014) |
-| Witch's lair 2 | Background | HarmonicMess | CC0 1.0 (public domain dedication) | [link](https://freesound.org/people/HarmonicMess/sounds/838661/) |
-| Witch's lair | Background | szegvari | CC0 1.0 (public domain dedication) | [link](https://freesound.org/people/szegvari/sounds/577936/) |
+| Churchyard at midnight | Ambience | BBC | BBC RemArc licence (BBC Sound Effects archive) | [link](https://sound-effects.bbcrewind.co.uk/search?q=07030036) |
+| Graveyard at night | Ambience | GreatGizmo74 | CC BY | [link](https://freesound.org/people/GreatGizmo74/sounds/685063/) |
+| Graveyard (loop) | Ambience | halloweensoundboard.com | © halloweensoundboard.com | [link](https://halloweensoundboard.com/) |
+| Haunted house ambience 2 | Ambience | Digital Gold Pictures | CC0 1.0 (public domain dedication) | [link](https://freesound.org/people/Digital Gold Pictures/sounds/63262/) |
+| Haunted house ambience | Ambience | klankbeeld | CC BY | [link](https://freesound.org/people/klankbeeld/sounds/255715/) |
+| Horror ambience | Ambience | Mixkit | Mixkit Sound Effects Free License (mixkit.co) | [link](https://mixkit.co/free-sound-effects/) |
+| Howling wind | Ambience | BBC | BBC RemArc licence (BBC Sound Effects archive) | [link](https://sound-effects.bbcrewind.co.uk/search?q=07038330) |
+| Laboratory (loop) | Ambience | halloweensoundboard.com | © halloweensoundboard.com | [link](https://halloweensoundboard.com/) |
+| Sewer (loop) | Ambience | halloweensoundboard.com | © halloweensoundboard.com | [link](https://halloweensoundboard.com/) |
+| Storm (loop) | Ambience | halloweensoundboard.com | © halloweensoundboard.com | [link](https://halloweensoundboard.com/) |
+| Thunderstorm | Ambience | John Burton | BBC RemArc licence (BBC Sound Effects archive) | [link](https://sound-effects.bbcrewind.co.uk/search?q=NHU05073014) |
+| Witch's lair 2 | Ambience | HarmonicMess | CC0 1.0 (public domain dedication) | [link](https://freesound.org/people/HarmonicMess/sounds/838661/) |
+| Witch's lair | Ambience | szegvari | CC0 1.0 (public domain dedication) | [link](https://freesound.org/people/szegvari/sounds/577936/) |
 | Angry cat roar | Creepy animals | Mixkit | Mixkit Sound Effects Free License (mixkit.co) | [link](https://mixkit.co/free-sound-effects/) |
 | Cat hiss 2 | Creepy animals | acclivity | CC BY-NC | [link](https://freesound.org/people/acclivity/sounds/16466/) |
 | Cat hiss | Creepy animals | Reitanna | CC0 1.0 (public domain dedication) | [link](https://freesound.org/people/Reitanna/sounds/343927/) |

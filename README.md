@@ -17,7 +17,7 @@ scare people by itself. In English and French. Works offline. No sign-up, no ads
   from all categories, the ones you pick, or your favourites only. Hide the phone, walk away.
 - **Background ambience.** Pick a track, or tick several and turn on **Mix** to layer them
   (a storm over a graveyard), each with its own level from 0 to 150 %.
-- **Volume tab.** One slider for the background, one for the effects, so the music never drowns
+- **Settings tab.** One slider for the background, one for the effects, so the music never drowns
   out a scream (or the other way round).
 - **Presets.** Save a mix and its volumes under a name, bring it back with one tap.
 - **Make it yours.** ♥ favourites float to the top, 👎 or 👁 hides what you don't like, and the
@@ -26,9 +26,9 @@ scare people by itself. In English and French. Works offline. No sign-up, no ads
   Sound titles are translated too, except what a voice says ("Get out" stays "Get out").
 - **Offline app.** Install it from your browser's menu (or the "Install the app" button): it
   downloads every sound and then works without a
-  connection. "Make it work offline" in the Volume tab does the same without installing.
+  connection. "Make it work offline" in the Settings tab does the same without installing.
 - **Your data stays yours.** Everything is saved in your browser only. Export it, import it on
-  another device, or reset it, from the Volume tab.
+  another device, or reset it, from the Settings tab.
 
 Best trick: pair your phone with a Bluetooth speaker, hide the speaker near the front door, and
 play from a distance.
@@ -36,8 +36,10 @@ play from a distance.
 ## A sibling for December
 
 The [Christmas Soundboard](https://github.com/mayerwin/christmas-soundboard) is the same app with
-another theme (sleigh bells, Santa, Saint Nicholas and his donkey, voices in English and French):
-the code is identical, the theme is data. [AGENTS.md](AGENTS.md) explains how the pieces fit.
+another theme (sleigh bells, Santa, Saint Nicholas and his donkey, voices in English and French,
+carols, and elves that hush at the slightest noise): the code is identical, the theme is data.
+Each site links to the other at the bottom of the page. [AGENTS.md](AGENTS.md) explains how the
+pieces fit.
 
 ## Is there a server?
 
@@ -75,19 +77,19 @@ of silence and loudness-matched. The full list is in [CREDITS.md](CREDITS.md) an
 
 | Sound | Category | Author | License | Source |
 |---|---|---|---|---|
-| Churchyard at midnight | Background | BBC | BBC RemArc licence (BBC Sound Effects archive) | [link](https://sound-effects.bbcrewind.co.uk/search?q=07030036) |
-| Graveyard at night | Background | GreatGizmo74 | CC BY | [link](https://freesound.org/people/GreatGizmo74/sounds/685063/) |
-| Graveyard (loop) | Background | halloweensoundboard.com | © halloweensoundboard.com | [link](https://halloweensoundboard.com/) |
-| Haunted house ambience 2 | Background | Digital Gold Pictures | CC0 1.0 (public domain dedication) | [link](https://freesound.org/people/Digital Gold Pictures/sounds/63262/) |
-| Haunted house ambience | Background | klankbeeld | CC BY | [link](https://freesound.org/people/klankbeeld/sounds/255715/) |
-| Horror ambience | Background | Mixkit | Mixkit Sound Effects Free License (mixkit.co) | [link](https://mixkit.co/free-sound-effects/) |
-| Howling wind | Background | BBC | BBC RemArc licence (BBC Sound Effects archive) | [link](https://sound-effects.bbcrewind.co.uk/search?q=07038330) |
-| Laboratory (loop) | Background | halloweensoundboard.com | © halloweensoundboard.com | [link](https://halloweensoundboard.com/) |
-| Sewer (loop) | Background | halloweensoundboard.com | © halloweensoundboard.com | [link](https://halloweensoundboard.com/) |
-| Storm (loop) | Background | halloweensoundboard.com | © halloweensoundboard.com | [link](https://halloweensoundboard.com/) |
-| Thunderstorm | Background | John Burton | BBC RemArc licence (BBC Sound Effects archive) | [link](https://sound-effects.bbcrewind.co.uk/search?q=NHU05073014) |
-| Witch's lair 2 | Background | HarmonicMess | CC0 1.0 (public domain dedication) | [link](https://freesound.org/people/HarmonicMess/sounds/838661/) |
-| Witch's lair | Background | szegvari | CC0 1.0 (public domain dedication) | [link](https://freesound.org/people/szegvari/sounds/577936/) |
+| Churchyard at midnight | Ambience | BBC | BBC RemArc licence (BBC Sound Effects archive) | [link](https://sound-effects.bbcrewind.co.uk/search?q=07030036) |
+| Graveyard at night | Ambience | GreatGizmo74 | CC BY | [link](https://freesound.org/people/GreatGizmo74/sounds/685063/) |
+| Graveyard (loop) | Ambience | halloweensoundboard.com | © halloweensoundboard.com | [link](https://halloweensoundboard.com/) |
+| Haunted house ambience 2 | Ambience | Digital Gold Pictures | CC0 1.0 (public domain dedication) | [link](https://freesound.org/people/Digital Gold Pictures/sounds/63262/) |
+| Haunted house ambience | Ambience | klankbeeld | CC BY | [link](https://freesound.org/people/klankbeeld/sounds/255715/) |
+| Horror ambience | Ambience | Mixkit | Mixkit Sound Effects Free License (mixkit.co) | [link](https://mixkit.co/free-sound-effects/) |
+| Howling wind | Ambience | BBC | BBC RemArc licence (BBC Sound Effects archive) | [link](https://sound-effects.bbcrewind.co.uk/search?q=07038330) |
+| Laboratory (loop) | Ambience | halloweensoundboard.com | © halloweensoundboard.com | [link](https://halloweensoundboard.com/) |
+| Sewer (loop) | Ambience | halloweensoundboard.com | © halloweensoundboard.com | [link](https://halloweensoundboard.com/) |
+| Storm (loop) | Ambience | halloweensoundboard.com | © halloweensoundboard.com | [link](https://halloweensoundboard.com/) |
+| Thunderstorm | Ambience | John Burton | BBC RemArc licence (BBC Sound Effects archive) | [link](https://sound-effects.bbcrewind.co.uk/search?q=NHU05073014) |
+| Witch's lair 2 | Ambience | HarmonicMess | CC0 1.0 (public domain dedication) | [link](https://freesound.org/people/HarmonicMess/sounds/838661/) |
+| Witch's lair | Ambience | szegvari | CC0 1.0 (public domain dedication) | [link](https://freesound.org/people/szegvari/sounds/577936/) |
 | Angry cat roar | Creepy animals | Mixkit | Mixkit Sound Effects Free License (mixkit.co) | [link](https://mixkit.co/free-sound-effects/) |
 | Cat hiss 2 | Creepy animals | acclivity | CC BY-NC | [link](https://freesound.org/people/acclivity/sounds/16466/) |
 | Cat hiss | Creepy animals | Reitanna | CC0 1.0 (public domain dedication) | [link](https://freesound.org/people/Reitanna/sounds/343927/) |

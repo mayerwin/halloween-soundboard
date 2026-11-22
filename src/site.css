@@ -13,6 +13,9 @@ footer { max-width:860px; margin:0 auto; padding:28px 18px 48px; text-align:cent
 footer p { margin:0 0 10px; }
 footer .tip { color:var(--tip); font-weight:600; }
 footer .small { font-size:12px; opacity:.8; }
+footer .sibling a { display:inline-block; padding:7px 14px; border-radius:999px; border:1px solid color-mix(in srgb, var(--link) 45%, transparent);
+  text-decoration:none; font-weight:600; }
+footer .sibling a:hover { background:color-mix(in srgb, var(--link) 12%, transparent); }
 footer a, .linkish, dialog a { color:var(--link); }
 .linkish { background:none; border:0; padding:0; font:inherit; text-decoration:underline; cursor:pointer; }
 dialog { max-width:min(760px, calc(100vw - 24px)); max-height:min(80vh, 900px); width:100%; border:1px solid color-mix(in srgb, var(--fg) 12%, transparent); border-radius:20px;
