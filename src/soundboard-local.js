@@ -77,6 +77,9 @@ export class LocalSoundboard {
     this.qCurrent = null;
     this.qGapUntil = 0;
     this.qWake = null; // resolves the current wait early (skip / stop)
+    this.qHeld = 0; // when the hush began holding the queue (0: not held), see hold()
+    this.qFreeze = null; // stands the current pause still / lets it run again
+    this.qUnhold = null;
     this.connection = { subscribeMessage: (cb, msg) => this.subscribe(cb, msg) };
   }
 
@@ -146,6 +149,7 @@ export class LocalSoundboard {
       return null;
     }
     if (t === "soundboard/queue") return this.queue(msg);
+    if (t === "soundboard/hold") return this.hold(msg.on);
     if (t === "soundboard/hide") return this.setHidden(msg.theme, msg.ids, msg.hidden);
     if (t === "soundboard/mark") return this.setMarks(msg.theme, msg.ids, msg.fav, msg.down);
     if (t === "soundboard/undo") { if (!this.undo(msg.entry)) throw new Error("nothing to undo"); return null; }
@@ -207,8 +211,10 @@ export class LocalSoundboard {
           running: !!this.qRun,
           items: this.qItems.map(({ _t, ...i }) => i),
           current: cur ? cur.uid : null,
-          current_started: cur && cur._t ? cur._t : null,
+          // held on a pause: it stands still, so its bar does too (the card stops the animation)
+          current_started: cur && cur._t ? cur._t + (this.qHeld && this.qFreeze ? now() - this.qHeld : 0) : null,
           gap_until: this.qGapUntil > now() ? this.qGapUntil : null,
+          held: !!this.qHeld,
         },
       },
     };
@@ -488,10 +494,48 @@ export class LocalSoundboard {
     this.notify();
   }
 
-  wait(sec) {
+  // still: a pause or the gap, which stands still while the queue is held (a sound plays on, faded)
+  wait(sec, still) {
     return new Promise((res) => {
-      const t = setTimeout(res, Math.max(0, sec) * 1000);
-      this.qWake = () => { clearTimeout(t); res(); };
+      let left = Math.max(0, sec) * 1000, t = null, t0 = 0;
+      const go = () => { t0 = Date.now(); t = setTimeout(end, left); };
+      const end = () => { clearTimeout(t); if (this.qFreeze === freeze) this.qFreeze = null; res(); };
+      const freeze = (held) => {
+        if (held && t) { clearTimeout(t); t = null; left = Math.max(0, left - (Date.now() - t0)); }
+        else if (!held && !t) go();
+      };
+      this.qWake = end;
+      if (still) this.qFreeze = freeze;
+      if (!(still && this.qHeld)) go();
+    });
+  }
+
+  // The card's hush (fade everything at a noise, Christmas): while it holds, the queue starts
+  // nothing new and its pauses stand still, so a long scene (the elves at night) picks up where
+  // it froze instead of running on unheard. The sound playing at the noise ends faded.
+  hold(on) {
+    on = !!on;
+    if (on === !!this.qHeld) return null;
+    if (on) this.qHeld = now();
+    else {
+      const dt = now() - this.qHeld;
+      this.qHeld = 0;
+      if (this.qFreeze) { // a pause (or the gap) stood still: so does its progress
+        if (this.qCurrent?._t) this.qCurrent._t += dt;
+        if (this.qGapUntil) this.qGapUntil += dt;
+      }
+      this.qUnhold?.();
+    }
+    this.qFreeze?.(on);
+    this.notify();
+    return null;
+  }
+
+  unheld() {
+    return new Promise((res) => {
+      const end = () => { this.qUnhold = null; res(); };
+      this.qUnhold = end;
+      this.qWake = end; // stop / skip
     });
   }
 
@@ -506,6 +550,7 @@ export class LocalSoundboard {
           }
           break;
         }
+        if (this.qHeld) { await this.unheld(); continue; }
         await this.playItem(item, token);
         if (this.qRun !== token) break;
         const more = this.qItems.some((i) => i.status === "pending") || this.s.sfx.loop;
@@ -513,7 +558,7 @@ export class LocalSoundboard {
         if (gap > 0 && more) {
           this.qGapUntil = now() + gap;
           this.notify();
-          await this.wait(gap); // a skip during a gap just ends the gap
+          await this.wait(gap, true); // a skip during a gap just ends the gap
           this.qGapUntil = 0;
         }
       }
@@ -531,7 +576,7 @@ export class LocalSoundboard {
     this.qCurrent = item;
     this.notify();
     if (item.type === "pause") {
-      await this.wait(item.duration);
+      await this.wait(item.duration, true);
     } else {
       const it = this.items.get(item.id);
       if (it) {

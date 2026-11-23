@@ -80,7 +80,9 @@ upstream to survive the next export: say so in the PR.
   played through Web Audio while it listens, so it can be heard and faded too. The settings tab
   shows the level, the line and what triggered it, live. Tested with a simulated microphone
   (speaker delay up to 0.32 s, a reverberant room, a distorting speaker, injected knocks, steps
-  and voices) and on a laptop's own microphone and speakers.
+  and voices) and on a laptop's own microphone and speakers. While faded, the queue holds
+  (`soundboard/hold`): nothing new starts and a pause stands still, so a long scene (the elves at
+  night) goes on where it froze rather than running on unheard.
 - **Plain words in the UI**, written for the person holding the phone at the door, not for an
   engineer. Every control has an accessible label. The ambience (the look's scene) always runs:
   the owner wants it even with the OS's animation effects turned off.
@@ -113,6 +115,7 @@ calls of a Home Assistant-style connection object, which is what `soundboard-loc
 | `soundboard/undo` | `entry` | Undo a history entry that has `undo` |
 | `soundboard/preset` | `action`: save (`name`) or delete (`preset`) | Presets; the card applies one as a settings patch |
 | `soundboard/stop_all` | | Stops everything |
+| `soundboard/hold` | `on` | Standalone only: the hush holds the queue while it has faded everything (no new item starts, a pause stands still), so a scene picks up where it froze |
 | `soundboard/warm` | `on` | HA only: keep camera / Cast streams open |
 | `soundboard/play_now` | `sound, speakers` | HA only: straight to these speakers, not queued, mixed over what they play |
 | `soundboard/data` | `action`: export, import (`data`), reset | Standalone only |
@@ -126,7 +129,7 @@ whatever the theme calls it; `hush` exists here only).
 Item: `{id, kind, title, title_fr, category, lang?, group?, duration, url, gain?, default_hidden, license, author, source_url}`.
 State: `{settings, hidden, marks, presets, history, warm, outputs: [{id, name, group, kind,
 available, ready}], themes: [{id, name, name_fr, emoji, accent, accent2, look, order}], music: {playing, mix, layers: [{id, track, title, duration, started,
-index, count}]}, queue: {running, items, current, current_started, gap_until}, server_time}`.
+index, count}]}, queue: {running, items, current, current_started, gap_until, held}, server_time}`.
 Commands to a device: `sfx {url, volume}`, `sfx_stop`, `sfx_volume {volume}`,
 `music {layer, url, offset, volume, title, loop}`, `music_stop {layer?}`, `music_volume {layers}`.
 

@@ -817,12 +817,13 @@ class SoundboardController {
       h.heard = Date.now();
       if (s.on) {
         h.until = t + (s.hold_s ?? 10);
-        if (!h.hushed) { h.hushed = true; this.duck(0, 0.08); changed = true; }
+        if (!h.hushed) { h.hushed = true; this.duck(0, 0.08); this.hold(true); changed = true; }
       }
     }
     if (h.hushed && (t >= h.until || !s.on)) {
       h.hushed = false;
       this.duck(1, 0.8);
+      this.hold(false);
       h.det.resumed();
       changed = true;
     }
@@ -832,6 +833,9 @@ class SoundboardController {
     }
     if (changed) this.render();
   }
+
+  // the queue waits too while faded: a scene picks up where it froze (the page's engine, hold())
+  hold(on) { this.ws({ type: "soundboard/hold", on }); }
 
   // fade everything this page plays: down fast (tau 0.08 s: silent in ~0.3 s), back up gently
   duck(v, tau) {
@@ -850,7 +854,7 @@ class SoundboardController {
     if (h.node) h.node.port.onmessage = null;
     for (const [src, n] of h.taps) { try { src.disconnect(n); } catch (e) { /* gone */ } }
     for (const n of h.nodes) { try { n.disconnect(); } catch (e) { /* gone */ } }
-    if (h.hushed) this.duck(1, 0.3);
+    if (h.hushed) { this.duck(1, 0.3); this.hold(false); }
     this.routeMusic = false;
     this.wakeLock(false);
     this.render();
@@ -1485,7 +1489,7 @@ class SoundboardCard extends HTMLElement {
         ${i.waiting ? `<span class="q-spin" aria-label="…"></span>` : `<span class="q-e">${emoji}</span>`}<span class="q-t">${i.type === "pause" ? `${fmtDur(i.duration)}` : esc(title)}</span>
         ${i.speakers ? `<span class="q-n">${i.speakers.length}🔊</span>` : ""}
         <button class="q-x" data-act="qrm" data-uid="${i.uid}" aria-label="${T("remove")}">×</button>
-        ${cur && !i.waiting ? `<span class="q-bar" style="animation-duration:${i.duration}s;animation-delay:-${el}s"></span>` : ""}
+        ${cur && !i.waiting ? `<span class="q-bar" style="animation-duration:${i.duration}s;animation-delay:-${el}s${q.held && i.type === "pause" ? ";animation-play-state:paused" : ""}"></span>` : ""}
       </span>`;
     }).join("")}${gapLeft > 0 ? `<span class="q gapchip"><span class="q-e">⏳</span><span class="q-t">${T("gapw")}</span><span class="q-bar" style="animation-duration:${SB.state.settings.sfx.gap}s;animation-delay:-${SB.state.settings.sfx.gap - gapLeft}s"></span></span>` : ""}</div>`);
   }
@@ -1674,7 +1678,9 @@ class SoundboardCard extends HTMLElement {
         if (!st.settings.sfx.speakers.length) { this.toast(T("tick_first")); break; }
         SB.unlock();
         b.classList.remove("flash"); void b.offsetWidth; b.classList.add("flash");
-        SB.ws({ type: "soundboard/queue", action: "add", items: this.sceneItems(sc).slice(0, 50) });
+        // a command takes 50 items at most: a long scene (the elves at night) goes in several, in order
+        const items = this.sceneItems(sc);
+        for (let i = 0; i < items.length; i += 50) SB.ws({ type: "soundboard/queue", action: "add", items: items.slice(i, i + 50) });
         break;
       }
       case "papply": this.applyPreset(b.dataset.id); break;
