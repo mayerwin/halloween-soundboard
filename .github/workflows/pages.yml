@@ -26,6 +26,21 @@ jobs:
         with:
           node-version: lts/*
       - run: node build.mjs
+      - name: Inject analytics script
+        if: vars.TIDESIGHT_URL != '' && vars.TIDESIGHT_SITE_ID != ''
+        env:
+          ANALYTICS_URL: ${{ vars.TIDESIGHT_URL }}
+          ANALYTICS_SITE: ${{ vars.TIDESIGHT_SITE_ID }}
+        run: |
+          python3 -c '
+          import os, pathlib
+          url, site = os.environ["ANALYTICS_URL"], os.environ["ANALYTICS_SITE"]
+          tag = f"  <script async src=\"{url}\" data-site=\"{site}\"></script>\n"
+          p = pathlib.Path("dist/index.html")
+          html = p.read_text(encoding="utf-8")
+          if url not in html:
+              p.write_text(html.replace("</head>", tag + "</head>", 1), encoding="utf-8")
+          '
       - uses: actions/configure-pages@v6
       - uses: actions/upload-pages-artifact@v5
         with:
